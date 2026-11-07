@@ -1,66 +1,81 @@
 
-:::writing{variant=“document” title=“Imran AI Business OS — README.md” id=“73182”}
-
 IMRAN AI BUSINESS OS
 
 Personal AI Business Operating System
 
 Founder: Imran Arefin
-Professional Identity: Advocate, Supreme Court of Bangladesh
+Designation: Advocate, Supreme Court of Bangladesh
 
-Vision
+1. PROJECT VISION
 
-To build a unified AI-powered digital office that manages legal practice, business development, professional relationships, financial operations and creative ventures.
+Imran AI Business OS is a unified digital business management platform designed to manage legal practice, professional relationships, business development, financial operations, creative projects and AI-powered workflows.
 
-Core Departments
+Our objective is to build a personal digital office that helps manage, monitor and grow multiple professional and business activities from one central platform.
 
-	1.	Executive Dashboard
-	2.	Legal Chamber
-	3.	CRM & Lead Management
-	4.	Business Development
-	5.	YouTube Studio
-	6.	Social Media Manager
-	7.	Creative Studio
-	8.	Music Studio
-	9.	Finance Manager
-	10.	AI Control Centre
+2. CORE DEPARTMENTS
 
-Core Objectives
+No.	Department	Purpose
+01	Executive Dashboard	Central command centre
+02	Legal Chamber	Clients and case management
+03	CRM	Contacts and lead management
+04	Business Development	Opportunities and revenue
+05	YouTube Studio	Video production and planning
+06	Social Media Manager	Social media operations
+07	Creative Studio	Branding and design
+08	Music Studio	Music and audio projects
+09	Finance Manager	Income and expenditure
+10	AI Control Centre	Personal AI assistant
 
-	•	Generate and manage business opportunities.
-	•	Organise legal clients and cases.
-	•	Track professional relationships.
-	•	Manage business projects and investments.
-	•	Monitor income, expenses and financial obligations.
-	•	Automate routine administrative work.
-	•	Use AI to support strategic decisions.
+3. BUSINESS ECOSYSTEM
 
-Development Principles
+The platform will support:
+	•	Arefin Legal & Corporate Group
+	•	IA² Holdings Private Limited
+	•	C3 Lifestyle
+	•	Bold Cotton
+	•	Independent business ventures
+	•	Professional networking and client relationships
 
-	•	Mobile-friendly interface.
-	•	Secure authentication.
-	•	Modular architecture.
-	•	Centralised database.
-	•	AI-assisted workflows.
-	•	Scalable infrastructure.
+4. TECHNOLOGY STACK
 
-Technology Stack
+	•	Frontend: Next.js
+	•	Language: TypeScript
+	•	UI: Tailwind CSS
+	•	Database: Supabase
+	•	Authentication: Supabase Auth
+	•	AI Integration: OpenAI API
+	•	Deployment: Vercel
+	•	Version Control: GitHub
 
-	•	Next.js
-	•	TypeScript
-	•	Tailwind CSS
-	•	Supabase
-	•	OpenAI API
-	•	Vercel
-
-Development Roadmap
+5. DEVELOPMENT PRIORITIES
 
 Phase 1: Application Foundation
-Phase 2: CRM and Income Generation
-Phase 3: Legal Chamber
-Phase 4: Business Management
-Phase 5: AI Integration
 
-Project Status: Initial Development
+Phase 2: CRM and Income Generation
+
+Phase 3: Legal Chamber Management
+
+Phase 4: Business and Financial Management
+
+Phase 5: Creative Operations
+
+Phase 6: AI Integration and Automation
+
+6. DEVELOPMENT PRINCIPLES
+
+	•	Mobile-first design
+	•	Secure data management
+	•	Modular architecture
+	•	Centralised business information
+	•	AI-assisted decision-making
+	•	Scalable infrastructure
+	•	Cost-efficient development
+
+7. LONG-TERM VISION
+
+To establish a fully integrated personal AI business ecosystem that supports professional excellence, sustainable income generation, business expansion and long-term legacy building.
+
+Project Name: Imran AI Business OS
 Repository: Imran-AI-Business-OS
-Ownership: Imran Arefin
+Status: Initial Development
+Founder: Imran Arefin
