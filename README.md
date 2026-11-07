@@ -1,81 +1,47 @@
+# Imran AI Business OS
 
-IMRAN AI BUSINESS OS
+A Next.js starter for a personal business operating system, beginning with a legal-work workspace: an executive overview, a sample task list, and human-supervised workflow concepts.
 
-Personal AI Business Operating System
+## Run locally
 
-Founder: Imran Arefin
-Designation: Advocate, Supreme Court of Bangladesh
+Requirements: Node.js 18.17+ and npm.
 
-1. PROJECT VISION
+```bash
+npm install
+npm run dev
+```
 
-Imran AI Business OS is a unified digital business management platform designed to manage legal practice, professional relationships, business development, financial operations, creative projects and AI-powered workflows.
+Open [http://localhost:3000](http://localhost:3000). To verify a production build:
 
-Our objective is to build a personal digital office that helps manage, monitor and grow multiple professional and business activities from one central platform.
+```bash
+npm run build
+npm start
+```
 
-2. CORE DEPARTMENTS
+## What is included
 
-No.	Department	Purpose
-01	Executive Dashboard	Central command centre
-02	Legal Chamber	Clients and case management
-03	CRM	Contacts and lead management
-04	Business Development	Opportunities and revenue
-05	YouTube Studio	Video production and planning
-06	Social Media Manager	Social media operations
-07	Creative Studio	Branding and design
-08	Music Studio	Music and audio projects
-09	Finance Manager	Income and expenditure
-10	AI Control Centre	Personal AI assistant
+- Responsive executive dashboard for desktop and mobile
+- Demo task checklist with interactive completion and a view-all toggle
+- New-enquiry workflow placeholder
+- Suggested intake, deadline follow-up, and document-status workflows
+- No database or external API required to run the demo
 
-3. BUSINESS ECOSYSTEM
+All displayed matter counts and tasks are fictional sample data. The interface does not persist entered information, send notifications, or carry out legal work automatically. It is a UI foundation, not a production case-management system.
 
-The platform will support:
-	•	Arefin Legal & Corporate Group
-	•	IA² Holdings Private Limited
-	•	C3 Lifestyle
-	•	Bold Cotton
-	•	Independent business ventures
-	•	Professional networking and client relationships
+## Legal-workforce automation: safe next steps
 
-4. TECHNOLOGY STACK
+Build workflow automation as human-reviewed task orchestration, not autonomous legal judgment. A reasonable next phase is:
 
-	•	Frontend: Next.js
-	•	Language: TypeScript
-	•	UI: Tailwind CSS
-	•	Database: Supabase
-	•	Authentication: Supabase Auth
-	•	AI Integration: OpenAI API
-	•	Deployment: Vercel
-	•	Version Control: GitHub
+1. Define roles (administrator, lawyer, caseworker) and access boundaries.
+2. Add secure sign-in and a database with tenant-aware access controls.
+3. Implement matter intake with a human conflict-check gate before opening a matter.
+4. Add assigned owners, due dates, and configurable reminders with escalation.
+5. Track document requests and review status; keep legal approval with a qualified person.
+6. Add immutable audit events, backup/restore, retention rules, and tested access policies.
+7. Use only synthetic data until security and privacy controls have been independently reviewed.
 
-5. DEVELOPMENT PRIORITIES
+Do not put real client names, case facts, identity documents, or privileged material into this demo. Before production, obtain qualified legal, security, and privacy review appropriate to the jurisdictions where it will be used. Do not treat generated outputs as legal advice or a substitute for professional review.
 
-Phase 1: Application Foundation
+## Project roadmap
 
-Phase 2: CRM and Income Generation
-
-Phase 3: Legal Chamber Management
-
-Phase 4: Business and Financial Management
-
-Phase 5: Creative Operations
-
-Phase 6: AI Integration and Automation
-
-6. DEVELOPMENT PRINCIPLES
-
-	•	Mobile-first design
-	•	Secure data management
-	•	Modular architecture
-	•	Centralised business information
-	•	AI-assisted decision-making
-	•	Scalable infrastructure
-	•	Cost-efficient development
-
-7. LONG-TERM VISION
-
-To establish a fully integrated personal AI business ecosystem that supports professional excellence, sustainable income generation, business expansion and long-term legacy building.
-
-Project Name: Imran AI Business OS
-Repository: Imran-AI-Business-OS
-Status: Initial Development
-Founder: Imran Arefin
+See [docs/ROADMAP.md](docs/ROADMAP.md). The initial repository contained planning documents; this branch adds the first runnable application foundation.
