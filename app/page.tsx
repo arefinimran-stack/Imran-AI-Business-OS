@@ -43,7 +43,9 @@ export default async function Home() {
 
   return (
     <Dashboard
-      ventureRecords={ventureResult.data ?? []}
+      organizationId={orgId}
+      role={membership.role}
+      ventureRecords={ventureResult.data ?? []>
       taskRecords={taskResult.data ?? []}
       metrics={{
         contacts: contactResult.error ? null : contactResult.count,
