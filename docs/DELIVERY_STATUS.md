@@ -6,7 +6,7 @@ Last updated: 11 November 2026
 
 - Founder Command Centre UI foundation.
 - Next.js / React / TypeScript / Tailwind application scaffold.
-- GitHub Actions workflow for lint, typecheck and production build.
+- GitHub Actions workflow for lint, typecheck and production build; npm lockfile committed and CI uses `npm ci`.
 - Supabase project connected to the implementation environment; project is healthy in `ap-south-1`.
 - Workspace schema: organizations, profiles, memberships, ventures, contacts, legal matters, tasks and audit events.
 - Four venture records seeded from the approved ecosystem blueprint.
@@ -19,7 +19,7 @@ Last updated: 11 November 2026
 
 ## In progress
 
-- CI validation. Initial failure was caused by the workflow requesting npm cache while no lockfile existed. Cache was removed; the next run is being evaluated.
+- Final CI run after the latest schema/migration commits is being evaluated. An earlier full run passed install, lint, typecheck and production build; a reproducible npm lockfile is now committed and the workflow uses `npm ci`.
 - Founder authentication and secure session middleware are implemented in the feature branch. Deployment environment configuration and first owner provisioning are pending.
 
 ## Not yet production-ready
