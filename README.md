@@ -1,81 +1,43 @@
+# IMRAN AI BUSINESS OS
 
-IMRAN AI BUSINESS OS
+Personal AI Business Operating System for the founder's professional practice and business ecosystem.
 
-Personal AI Business Operating System
+## Current milestone
 
-Founder: Imran Arefin
-Designation: Advocate, Supreme Court of Bangladesh
+The Founder Command Centre is the first application slice. It is a responsive, data-honest dashboard shell. Metrics are intentionally shown as unavailable until their underlying systems are connected; no sample client, case, revenue, or financial records are fabricated.
 
-1. PROJECT VISION
+## Technology
 
-Imran AI Business OS is a unified digital business management platform designed to manage legal practice, professional relationships, business development, financial operations, creative projects and AI-powered workflows.
+- Next.js App Router and React
+- TypeScript
+- Tailwind CSS
+- Supabase Auth, PostgreSQL, Row Level Security and tenant-scoped data
+- OpenAI planned for AI-assisted workflows
+- Vercel planned for deployment
 
-Our objective is to build a personal digital office that helps manage, monitor and grow multiple professional and business activities from one central platform.
+## Local development
 
-2. CORE DEPARTMENTS
+1. Install Node.js 20 or newer.
+2. Install dependencies: `npm install`
+3. Copy `.env.example` to `.env.local` and add the Supabase project URL and publishable key.
+4. Start the development server: `npm run dev`
+5. Open `http://localhost:3000`.
 
-No.	Department	Purpose
-01	Executive Dashboard	Central command centre
-02	Legal Chamber	Clients and case management
-03	CRM	Contacts and lead management
-04	Business Development	Opportunities and revenue
-05	YouTube Studio	Video production and planning
-06	Social Media Manager	Social media operations
-07	Creative Studio	Branding and design
-08	Music Studio	Music and audio projects
-09	Finance Manager	Income and expenditure
-10	AI Control Centre	Personal AI assistant
+## Environment and security
 
-3. BUSINESS ECOSYSTEM
+- Never commit real credentials, API keys, service-role keys, client data, case files, or other confidential records.
+- Put secrets in local ignored environment files and encrypted deployment environment settings.
+- The Supabase service-role key is server-only and must never use the `NEXT_PUBLIC_` prefix.
+- Authentication, row-level security and role design are implemented in the foundation branch; deployment configuration, owner provisioning, audit-event writes and operational security checks remain pending.
+- This initial dashboard is a UI foundation, not a production-ready legal case management system.
 
-The platform will support:
-	•	Arefin Legal & Corporate Group
-	•	IA² Holdings Private Limited
-	•	C3 Lifestyle
-	•	Bold Cotton
-	•	Independent business ventures
-	•	Professional networking and client relationships
+## Repository documentation
 
-4. TECHNOLOGY STACK
+- `docs/SECURITY_MODEL.md` — roles, tenant isolation and legal-data safeguards.
+- `docs/OWNER_ONBOARDING.md` — one-time founder account provisioning.
+- `docs/DELIVERY_STATUS.md` — verified delivery status and remaining launch gates.
+- `supabase/migrations/` — versioned database migrations.
 
-	•	Frontend: Next.js
-	•	Language: TypeScript
-	•	UI: Tailwind CSS
-	•	Database: Supabase
-	•	Authentication: Supabase Auth
-	•	AI Integration: OpenAI API
-	•	Deployment: Vercel
-	•	Version Control: GitHub
-
-5. DEVELOPMENT PRIORITIES
-
-Phase 1: Application Foundation
-
-Phase 2: CRM and Income Generation
-
-Phase 3: Legal Chamber Management
-
-Phase 4: Business and Financial Management
-
-Phase 5: Creative Operations
-
-Phase 6: AI Integration and Automation
-
-6. DEVELOPMENT PRINCIPLES
-
-	•	Mobile-first design
-	•	Secure data management
-	•	Modular architecture
-	•	Centralised business information
-	•	AI-assisted decision-making
-	•	Scalable infrastructure
-	•	Cost-efficient development
-
-7. LONG-TERM VISION
-
-To establish a fully integrated personal AI business ecosystem that supports professional excellence, sustainable income generation, business expansion and long-term legacy building.
-
-Project Name: Imran AI Business OS
-Repository: Imran-AI-Business-OS
-Status: Initial Development
-Founder: Imran Arefin
+- `docs/ROADMAP.md` — original milestone roadmap.
+- `docs/FOUNDATION_ARCHITECTURE.md` — architecture principles and domain model.
+- `docs/IMPLEMENTATION_BACKLOG.md` — sequenced delivery backlog.

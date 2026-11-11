@@ -1,0 +1,40 @@
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+
+export async function updateSession(request: NextRequest) {
+  let response = NextResponse.next({ request });
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+  // Keep the design preview usable until deployment credentials are configured.
+  if (!url || !key) return response;
+
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      getAll: () => request.cookies.getAll(),
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        response = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+      },
+    },
+  });
+
+  const { data } = await supabase.auth.getClaims();
+  const isLogin = request.nextUrl.pathname.startsWith("/login");
+  if (!data?.claims && !isLogin) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/login";
+    const redirect = NextResponse.redirect(redirectUrl);
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+    return redirect;
+  }
+  if (data?.claims && isLogin) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/";
+    const redirect = NextResponse.redirect(redirectUrl);
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+    return redirect;
+  }
+  return response;
+}
