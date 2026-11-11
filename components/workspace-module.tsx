@@ -120,6 +120,9 @@ export default function WorkspaceModule({ section, organizationId, role }: Props
   }
 
   const Icon = config.icon;
+  if (config && !organizationId) {
+    return <section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-soft"><h2 className="text-lg font-semibold text-slate-900">{config.title}</h2><p className="mt-2 text-sm text-slate-500">Connect the authenticated workspace before using this module. No data is loaded in preview mode.</p></section>;
+  }
   return (
     <section className="space-y-5">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
