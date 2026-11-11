@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import { AlertCircle, BriefcaseBusiness, Building2, ClipboardList, LoaderCircle, Plus, RefreshCw, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -52,7 +52,7 @@ export default function WorkspaceModule({ section, organizationId, role }: Props
         ? isOwner
         : ["owner", "admin", "lawyer", "staff"].includes(role);
 
-  async function loadRecords() {
+  const loadRecords = useCallback(async () => {
     if (!config) return;
     setLoading(true);
     setError("");
@@ -75,9 +75,9 @@ export default function WorkspaceModule({ section, organizationId, role }: Props
     } finally {
       setLoading(false);
     }
-  }
+  }, [config, organizationId, section]);
 
-  useEffect(() => { void loadRecords(); }, [section, organizationId]);
+  useEffect(() => { void loadRecords(); }, [loadRecords]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
