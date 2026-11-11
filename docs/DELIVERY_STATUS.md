@@ -15,7 +15,7 @@ Last updated: 11 November 2026
 - Role-based access policies, tenant-consistent composite foreign keys, safe membership deactivation and last-owner protection added.
 - Metadata-only audit triggers and automatic `updated_at` triggers added.
 - Public execution revoked for the database's RLS auto-enable SECURITY DEFINER helper; event trigger remains enabled.
-- All 8 applied schema/security migrations tracked in `supabase/migrations/`.
+- All 10 applied schema/security migrations tracked in `supabase/migrations/`.
 - Supabase security advisor returned no findings after hardening.
 
 ## In progress
