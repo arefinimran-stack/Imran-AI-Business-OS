@@ -15,8 +15,11 @@
 - 24/7 background execution: run state is server-persisted via migrations and the edge worker scaffold exists; server-side step executor needs a deployed Supabase project.
 - Cloud sync/auth: schema ready; Supabase Auth wiring next.
 
+### Completed (added in this update)
+- **AI Creation Studio** (`/studio`): AI Writer (scripts, articles, proposals, legal-draft templates, LinkedIn posts — AI provider when configured, structured template fallback otherwise, always labelled); branded Social Graphic generator (real SVG + PNG export, navy/gold executive design); real PDF generator (dependency-free, multi-page); Word-compatible .doc export; CSV spreadsheet export; central Creation library with re-download and delete.
+
 ### Planned
-- Generation Studio (image/video/audio/PDF/DOCX), knowledge repository, platform publishing integrations, Tool Builder marketplace, voice input.
+- Video/audio/music generation (needs a connected generation provider), knowledge repository, platform publishing integrations, Tool Builder marketplace, voice input.
 
 ## 0.1.0 — iOS app foundation
 - Mobile-first Next.js PWA; all 10 departments with on-device CRUD; PWA manifest/service worker/icons; Capacitor config + iOS build guide; PIN app-lock.

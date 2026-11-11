@@ -157,6 +157,18 @@ export interface AuditEntry {
   detail: string;
 }
 
+export type CreationKind = "text" | "graphic" | "pdf" | "doc" | "sheet";
+
+export interface Creation {
+  id: string;
+  kind: CreationKind;
+  title: string;
+  format: string;
+  content: string;
+  createdAt: string;
+  source: "ai" | "template";
+}
+
 export interface AppData {
   contacts: Contact[];
   cases: LegalCase[];
@@ -171,6 +183,7 @@ export interface AppData {
   runs: WorkflowRun[];
   approvals: Approval[];
   audit: AuditEntry[];
+  creations: Creation[];
   settings: {
     lockEnabled: boolean;
     pin: string;

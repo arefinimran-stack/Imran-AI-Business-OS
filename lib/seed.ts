@@ -57,6 +57,7 @@ export function seedData(): AppData {
     runs: [],
     approvals: [],
     audit: [],
+    creations: [],
     settings: { lockEnabled: false, pin: "", onboarded: false, lastVisit: new Date().toISOString() },
   };
 }

@@ -145,6 +145,12 @@ export default function DashboardPage() {
             <p className="mt-1 text-sm font-medium leading-tight">AI Autopilot</p>
           </Card>
         </Link>
+        <Link href="/studio">
+          <Card className="active:bg-[var(--surface2)]">
+            <p className="text-2xl">🎨</p>
+            <p className="mt-1 text-sm font-medium leading-tight">Creation Studio</p>
+          </Card>
+        </Link>
       </div>
     </div>
   );

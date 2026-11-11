@@ -16,6 +16,7 @@ import type {
   WorkflowRun,
   Approval,
   AuditEntry,
+  Creation,
 } from "./types";
 import { seedData } from "./seed";
 
@@ -58,6 +59,8 @@ type Action =
   | { type: "addApproval"; item: Approval }
   | { type: "updateApproval"; item: Approval }
   | { type: "addAudit"; item: AuditEntry }
+  | { type: "addCreation"; item: Creation }
+  | { type: "removeCreation"; id: string }
   | { type: "setLastVisit"; ts: string }
   | { type: "reset" };
 
@@ -135,6 +138,10 @@ function reducer(state: AppData, action: Action): AppData {
       return { ...state, approvals: state.approvals.map((a) => (a.id === action.item.id ? action.item : a)) };
     case "addAudit":
       return { ...state, audit: [action.item, ...state.audit].slice(0, 200) };
+    case "addCreation":
+      return { ...state, creations: [action.item, ...state.creations] };
+    case "removeCreation":
+      return { ...state, creations: state.creations.filter((c) => c.id !== action.id) };
     case "setLastVisit":
       return { ...state, settings: { ...state.settings, lastVisit: action.ts } };
     case "reset":

@@ -15,7 +15,8 @@ Status: ✅ completed · 🔶 partial · ⬜ planned
 - ✅ Provider-independent AI layer (OpenAI ready, local planner fallback)
 - ✅ AI Autopilot: persistent resumable workflow engine, approval gates
 - 🔶 24/7 server-side execution (edge worker scaffold ready; needs deployed backend)
-- ⬜ Generation Studio (image/video/audio/PDF/DOCX)
+- ✅ Creation Studio: AI writer, social graphics (SVG/PNG), PDF, Word, CSV generation with central library
+- ⬜ Generation Studio: video/audio/music (needs connected generation provider)
 
 ### PHASE 3 — CRM AND INCOME GENERATION
 - ✅ Contacts, lead pipeline, follow-up tasks, revenue tracking

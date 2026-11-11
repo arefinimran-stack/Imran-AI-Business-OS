@@ -78,11 +78,17 @@ Supabase does not touch UI code.
 - Supabase Auth, role-based access, encrypted storage, backups (Planned — requires Supabase project).
 - Hard prohibitions encoded: agents never transfer money, sign, file court documents, or send binding notices autonomously (enforced by approval gates; restated in the AI system prompt).
 
-## Provider-independent generation (Partial)
+## Generation Studio (Completed — documents & graphics; Planned — video/audio/music)
 
-`lib/ai/provider.ts` defines the `AIProvider` interface with an OpenAI
-implementation; other providers plug in without touching callers. The
-Generation Studio (image/video/audio/PDF/DOCX) is Planned.
+`app/studio` generates real files client-side with zero dependencies:
+- AI Writer: provider-backed via `app/api/ai` when `OPENAI_API_KEY` is set, otherwise structured template drafts — the source (AI vs template) is always labelled.
+- Social graphics: deterministic branded SVG (navy/gold) with PNG export via canvas.
+- Documents: dependency-free PDF writer (`lib/studio/generators.ts`, Latin script — documented limitation), Word-compatible HTML `.doc`, CSV.
+- Creation library: every artifact is saved to the store and re-downloadable.
+
+Video, audio and music generation require a connected generation provider and
+remain Planned. `lib/ai/provider.ts` stays provider-independent: new providers
+implement the interface without touching callers.
 
 ## What is intentionally not built yet
 
