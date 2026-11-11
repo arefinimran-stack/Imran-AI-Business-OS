@@ -12,12 +12,12 @@ export default async function Home() {
 
   const { data: membership, error: membershipError } = await supabase
     .from("organization_members")
-    .select("organization_id, role")
+    .select("organization_id, role, is_active")
     .eq("user_id", user.id)
     .limit(1)
     .maybeSingle();
 
-  if (membershipError || !membership) {
+  if (membershipError || !membership || !membership.is_active) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f5f6f8] px-4">
         <section className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-soft">
