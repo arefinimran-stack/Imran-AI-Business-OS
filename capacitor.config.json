@@ -1,0 +1,13 @@
+{
+  "appId": "com.imranarefin.businessos",
+  "appName": "Imran AI Business OS",
+  "webDir": "out",
+  "bundledWebRuntime": false,
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#0b1220"
+  },
+  "server": {
+    "iosScheme": "https"
+  }
+}

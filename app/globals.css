@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0a1428;
+  --surface: #101e38;
+  --surface2: #16294a;
+  --border: rgba(201, 162, 39, 0.14);
+  --accent: #c9a227;
+  --accent-bright: #e3c35a;
+  --text: #f5f0e6;
+  --muted: #8c9ab5;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background:
+    radial-gradient(1200px 500px at 50% -10%, rgba(201, 162, 39, 0.07), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+input,
+select,
+textarea {
+  color-scheme: dark;
+}
+
+.safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 76px);
+}
+
+.tabbar {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.gold {
+  color: var(--accent-bright);
+}
+
+.gold-rule {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 162, 39, 0.55), transparent);
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
