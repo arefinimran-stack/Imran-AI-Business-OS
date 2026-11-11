@@ -10,11 +10,11 @@ Last updated: 11 November 2026
 - Supabase project connected to the implementation environment; project is healthy in `ap-south-1`.
 - Workspace schema: organizations, profiles, memberships, ventures, contacts, legal matters, tasks and audit events.
 - Four venture records seeded from the approved ecosystem blueprint.
-- RLS enabled on every application table.
-- Anonymous table grants revoked.
-- Role-based access policies and tenant-consistent composite foreign keys added.
+- RLS enabled on all 8 application tables; anonymous table grants revoked.
+- Role-based access policies, tenant-consistent composite foreign keys, safe membership deactivation and last-owner protection added.
+- Metadata-only audit triggers and automatic `updated_at` triggers added.
 - Public execution revoked for the database's RLS auto-enable SECURITY DEFINER helper; event trigger remains enabled.
-- Applied schema/security migrations tracked in `supabase/migrations/`.
+- All 8 applied schema/security migrations tracked in `supabase/migrations/`.
 - Supabase security advisor returned no findings after hardening.
 
 ## In progress
