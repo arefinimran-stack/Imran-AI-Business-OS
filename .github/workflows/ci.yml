@@ -7,7 +7,7 @@ on:
     branches: [main, "feature/**"]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   validate:
@@ -22,7 +22,7 @@ jobs:
           node-version: 20
       - name: Install dependencies
         run: |
-          if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
+          npm ci --no-audit --no-fund
       - name: Lint
         run: npm run lint
       - name: Typecheck
@@ -30,13 +30,3 @@ jobs:
       - name: Production build
         run: npm run build
 
-      - name: Commit generated npm lockfile
-        if: github.event_name == 'push'
-        run: |
-          if [ -f package-lock.json ] && [ -n "$(git status --porcelain package-lock.json)" ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add package-lock.json
-            git commit -m "chore: add reproducible npm lockfile"
-            git push
-          fi
