@@ -20,12 +20,12 @@ Last updated: 11 November 2026
 
 ## In progress
 
-- Final CI run after the latest schema/migration commits is being evaluated. An earlier full run passed install, lint, typecheck and production build; a reproducible npm lockfile is now committed and the workflow uses `npm ci`.
+- GitHub Actions CI passed on the latest branch commit: `npm ci`, lint, TypeScript typecheck and production build all succeeded.
 - Founder authentication and secure session middleware are implemented in the feature branch. Deployment environment configuration and first owner provisioning are pending.
 
 ## Not yet production-ready
 
-- No verified production deployment or custom domain.
+- No verified production deployment or custom domain; Vercel team access authorization is pending.
 - No founder account/membership provisioned.
 - No live CRM, matter, finance or task data.
 - No AI workflows connected to privileged legal or business data.
