@@ -84,6 +84,79 @@ export interface Task extends BaseEntity {
   done: boolean;
 }
 
+export type AgentId =
+  | "executive"
+  | "legal"
+  | "business"
+  | "crm"
+  | "content"
+  | "social"
+  | "research"
+  | "finance"
+  | "creative"
+  | "automation"
+  | "developer";
+
+export interface AgentDef {
+  id: AgentId;
+  name: string;
+  role: string;
+  department: string;
+  skills: string[];
+}
+
+export type RunStepStatus = "pending" | "running" | "done" | "awaiting_approval" | "failed";
+
+export interface RunStep {
+  id: string;
+  name: string;
+  agentId: AgentId;
+  detail: string;
+  status: RunStepStatus;
+  output?: string;
+  needsApproval?: boolean;
+}
+
+export type RunStatus = "running" | "awaiting_approval" | "completed" | "failed" | "paused";
+
+export interface WorkflowRun {
+  id: string;
+  workflowId: string;
+  title: string;
+  status: RunStatus;
+  steps: RunStep[];
+  createdAt: string;
+  updatedAt: string;
+  log: { ts: string; agentId: AgentId; message: string }[];
+}
+
+export interface WorkflowDef {
+  id: string;
+  name: string;
+  description: string;
+  trigger: "manual" | "schedule:daily" | "schedule:weekly" | "event:new-lead";
+  steps: { name: string; agentId: AgentId; detail: string; needsApproval?: boolean }[];
+}
+
+export interface Approval {
+  id: string;
+  runId: string;
+  stepId: string;
+  title: string;
+  agentId: AgentId;
+  summary: string;
+  status: "pending" | "approved" | "rejected";
+  createdAt: string;
+}
+
+export interface AuditEntry {
+  id: string;
+  ts: string;
+  actor: string;
+  action: string;
+  detail: string;
+}
+
 export interface AppData {
   contacts: Contact[];
   cases: LegalCase[];
@@ -94,10 +167,15 @@ export interface AppData {
   tracks: Track[];
   transactions: Transaction[];
   tasks: Task[];
+  workflows: WorkflowDef[];
+  runs: WorkflowRun[];
+  approvals: Approval[];
+  audit: AuditEntry[];
   settings: {
     lockEnabled: boolean;
     pin: string;
     onboarded: boolean;
+    lastVisit: string;
   };
 }
 

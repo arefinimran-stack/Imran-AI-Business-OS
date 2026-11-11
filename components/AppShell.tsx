@@ -108,13 +108,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-40 bg-[var(--bg)]/90 px-4 pt-[max(env(safe-area-inset-top),12px)] pb-3 backdrop-blur">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[11px] uppercase tracking-widest text-[var(--muted)]">Imran AI Business OS</p>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--accent)]">Imran AI</p>
             <h1 className="text-lg font-bold leading-tight">{title}</h1>
           </div>
-          <Link href="/ai" className="rounded-full bg-[var(--surface)] px-3 py-1.5 text-lg" aria-label="AI Control Centre">
+          <Link href="/ai" className="rounded-full bg-[var(--surface)] border border-[var(--border)] px-3 py-1.5 text-lg" aria-label="AI Command Centre">
             🤖
           </Link>
         </div>
+        <div className="gold-rule mt-2" />
       </header>
       <main className="flex-1 px-4 safe-bottom">{children}</main>
       <nav className="tabbar fixed bottom-0 left-0 right-0 z-40 mx-auto flex max-w-md justify-around border-t border-white/5 bg-[var(--surface)]/95 pt-2 backdrop-blur">

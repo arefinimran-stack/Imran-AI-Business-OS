@@ -12,6 +12,10 @@ import type {
   Track,
   Transaction,
   Task,
+  WorkflowDef,
+  WorkflowRun,
+  Approval,
+  AuditEntry,
 } from "./types";
 import { seedData } from "./seed";
 
@@ -46,6 +50,15 @@ type Action =
   | { type: "toggleTask"; id: string }
   | { type: "removeTask"; id: string }
   | { type: "setLock"; lockEnabled: boolean; pin: string }
+  | { type: "addWorkflow"; item: WorkflowDef }
+  | { type: "removeWorkflow"; id: string }
+  | { type: "addRun"; item: WorkflowRun }
+  | { type: "updateRun"; item: WorkflowRun }
+  | { type: "removeRun"; id: string }
+  | { type: "addApproval"; item: Approval }
+  | { type: "updateApproval"; item: Approval }
+  | { type: "addAudit"; item: AuditEntry }
+  | { type: "setLastVisit"; ts: string }
   | { type: "reset" };
 
 function reducer(state: AppData, action: Action): AppData {
@@ -106,6 +119,24 @@ function reducer(state: AppData, action: Action): AppData {
       return { ...state, tasks: state.tasks.filter((t) => t.id !== action.id) };
     case "setLock":
       return { ...state, settings: { ...state.settings, lockEnabled: action.lockEnabled, pin: action.pin } };
+    case "addWorkflow":
+      return { ...state, workflows: [action.item, ...state.workflows] };
+    case "removeWorkflow":
+      return { ...state, workflows: state.workflows.filter((w) => w.id !== action.id) };
+    case "addRun":
+      return { ...state, runs: [action.item, ...state.runs] };
+    case "updateRun":
+      return { ...state, runs: state.runs.map((r) => (r.id === action.item.id ? action.item : r)) };
+    case "removeRun":
+      return { ...state, runs: state.runs.filter((r) => r.id !== action.id) };
+    case "addApproval":
+      return { ...state, approvals: [action.item, ...state.approvals] };
+    case "updateApproval":
+      return { ...state, approvals: state.approvals.map((a) => (a.id === action.item.id ? action.item : a)) };
+    case "addAudit":
+      return { ...state, audit: [action.item, ...state.audit].slice(0, 200) };
+    case "setLastVisit":
+      return { ...state, settings: { ...state.settings, lastVisit: action.ts } };
     case "reset":
       return seedData();
     default:

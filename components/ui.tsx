@@ -4,7 +4,7 @@ import React, { useState } from "react";
 
 export function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-2xl bg-[var(--surface)] border border-white/5 p-4 ${className}`}>
+    <div className={`rounded-2xl bg-[var(--surface)] border border-[var(--border)] p-4 ${className}`}>
       {children}
     </div>
   );
@@ -102,7 +102,7 @@ export const inputClass =
   "w-full rounded-xl bg-[var(--surface2)] border border-white/10 px-3 py-2.5 text-sm outline-none focus:border-[var(--accent)] placeholder:text-[var(--muted)]";
 
 export const buttonClass =
-  "rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white active:opacity-80 disabled:opacity-40";
+  "rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[#0a1428] active:opacity-80 disabled:opacity-40";
 
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

@@ -37,6 +37,13 @@ export default function MorePage() {
     <div>
       <SectionTitle>Departments</SectionTitle>
       <div className="space-y-2">
+        <Link href="/autopilot">
+          <Card className="flex items-center gap-3 active:bg-[var(--surface2)]">
+            <span className="text-2xl">🛰️</span>
+            <span className="flex-1 text-sm font-medium">AI Autopilot</span>
+            <span className="text-[var(--muted)]">›</span>
+          </Card>
+        </Link>
         {DEPARTMENTS.filter((d) => d.slug !== "/").map((d) => (
           <Link key={d.slug} href={d.slug}>
             <Card className="flex items-center gap-3 active:bg-[var(--surface2)]">

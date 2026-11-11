@@ -95,5 +95,7 @@ The app is mobile-first and works as an installable iOS app:
 
 	•	Phase 1 foundation complete: Executive Dashboard, mobile-first UI, app lock, PWA support
 	•	All 10 departments implemented with on-device data persistence
-	•	AI Control Centre: daily executive briefing and on-device assistant
-	•	Data layer structured for a drop-in Supabase sync upgrade
+	•	AI Command Centre: 11 specialised agents, natural-language planner, workflow execution
+	•	AI Autopilot: persistent resumable workflow engine with human approval gates
+	•	Supabase schema and background-worker scaffold ready for 24/7 cloud execution
+	•	See docs/ARCHITECTURE.md for completed / partial / planned status

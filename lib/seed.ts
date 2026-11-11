@@ -53,6 +53,10 @@ export function seedData(): AppData {
       { id: id(23), createdAt: iso(-3), title: "Approve IA² logo concepts", department: "Creative Studio", due: iso(5), done: false },
       { id: id(24), createdAt: iso(-7), title: "Publish compliance article", department: "Social Media", due: iso(-1), done: true },
     ],
-    settings: { lockEnabled: false, pin: "", onboarded: false },
+    workflows: [],
+    runs: [],
+    approvals: [],
+    audit: [],
+    settings: { lockEnabled: false, pin: "", onboarded: false, lastVisit: new Date().toISOString() },
   };
 }
