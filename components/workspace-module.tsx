@@ -44,6 +44,7 @@ export default function WorkspaceModule({ section, organizationId, role }: Props
   const [priority, setPriority] = useState("normal");
 
   const isOwner = ["owner", "admin"].includes(role);
+  const canRead = section !== "Legal Chamber" || ["owner", "admin", "lawyer"].includes(role);
   const canManage = section === "CRM & Relationships"
     ? ["owner", "admin", "lawyer", "staff"].includes(role)
     : section === "Legal Chamber"
@@ -120,6 +121,10 @@ export default function WorkspaceModule({ section, organizationId, role }: Props
   }
 
   const Icon = config.icon;
+  if (config && !canRead) {
+    return <section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-soft"><h2 className="text-lg font-semibold text-slate-900">Restricted legal workspace</h2><p className="mt-2 text-sm text-slate-500">Your current role does not include access to legal matter records. Database row-level security enforces this restriction.</p></section>;
+  }
+
   if (config && !organizationId) {
     return <section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-soft"><h2 className="text-lg font-semibold text-slate-900">{config.title}</h2><p className="mt-2 text-sm text-slate-500">Connect the authenticated workspace before using this module. No data is loaded in preview mode.</p></section>;
   }
