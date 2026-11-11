@@ -79,3 +79,21 @@ Project Name: Imran AI Business OS
 Repository: Imran-AI-Business-OS
 Status: Initial Development
 Founder: Imran Arefin
+
+8. RUNNING THE APP
+
+	•	Install: npm install
+	•	Develop: npm run dev
+	•	Production build: npm run build (static export into out/)
+
+The app is mobile-first and works as an installable iOS app:
+
+	•	PWA: open in Safari → Share → Add to Home Screen (offline-capable)
+	•	Native App Store build: see docs/IOS-BUILD.md (Capacitor, config included)
+
+9. CURRENT STATUS
+
+	•	Phase 1 foundation complete: Executive Dashboard, mobile-first UI, app lock, PWA support
+	•	All 10 departments implemented with on-device data persistence
+	•	AI Control Centre: daily executive briefing and on-device assistant
+	•	Data layer structured for a drop-in Supabase sync upgrade

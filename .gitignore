@@ -1,0 +1,10 @@
+node_modules/
+.next/
+out/
+ios/App/Pods/
+ios/App/App/public/
+ios/DerivedData/
+.env
+.env.local
+*.log
+.DS_Store

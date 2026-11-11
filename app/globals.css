@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0b1220;
+  --surface: #121b2e;
+  --surface2: #1a2540;
+  --accent: #4f8cff;
+  --accent2: #9a6bff;
+  --text: #e8eefc;
+  --muted: #8fa0c2;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+input,
+select,
+textarea {
+  color-scheme: dark;
+}
+
+.safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 76px);
+}
+
+.tabbar {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
