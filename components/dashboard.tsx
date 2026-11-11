@@ -27,10 +27,25 @@ function SectionTitle({ title, action }: { title: string; action?: string }) {
   return <div className="mb-4 flex items-center justify-between"><h2 className="text-sm font-semibold text-slate-900">{title}</h2>{action && <button className="text-xs font-medium text-[#315e50] hover:underline">{action}</button>}</div>;
 }
 
-export default function Dashboard() {
+type VentureRecord = { id: string; name: string; category: string; status: string };
+type TaskRecord = { id: string; title: string; status: string; priority: string; due_at: string | null };
+type DashboardProps = {
+  ventureRecords?: VentureRecord[];
+  taskRecords?: TaskRecord[];
+  metrics?: { contacts: number | null; matters: number | null; activeVentures: number };
+};
+
+export default function Dashboard({ ventureRecords, taskRecords, metrics }: DashboardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("Overview");
   const [showBrief, setShowBrief] = useState(true);
+  const displayedVentures = ventureRecords === undefined ? ventures.map((v) => ({ ...v, status: "planning" })) : ventureRecords.map((v, i) => ({
+    name: v.name,
+    type: v.category.replaceAll("_", " "),
+    initials: v.name.split(/\\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
+    color: ["bg-[#e8eee9]", "bg-[#f1ebdf]", "bg-[#e9edf5]", "bg-[#f3e9e7]"][i % 4],
+    status: v.status,
+  }));
   return (
     <div className="min-h-screen bg-[#f5f6f8]">
       <aside className={`fixed inset-y-0 left-0 z-40 flex w-[258px] flex-col border-r border-slate-200 bg-white transition-transform lg:translate-x-0 ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}>
@@ -64,15 +79,15 @@ export default function Dashboard() {
           {showBrief && <section className="relative mb-7 overflow-hidden rounded-2xl bg-[#183b35] p-5 text-white shadow-soft md:p-6"><button onClick={() => setShowBrief(false)} aria-label="Dismiss briefing" className="absolute right-4 top-4 rounded-lg p-1 text-white/50 hover:bg-white/10 hover:text-white"><X size={16}/></button><div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between"><div className="max-w-2xl"><div className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.18em] text-[#d7c08f]"><Sparkles size={13}/>Founder briefing · Preview</div><h2 className="text-lg font-semibold tracking-tight md:text-xl">Build with focus. Operate with clarity.</h2><p className="mt-2 text-sm leading-6 text-white/65">Your command centre is being established. Start with the essentials: relationships, priority matters, cash visibility and the next action that moves each venture forward.</p></div><div className="flex shrink-0 items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3"><CalendarDays size={17} className="text-[#d7c08f]"/><div><div className="text-xs font-semibold">Wednesday, 11 November</div><div className="mt-0.5 text-[10px] text-white/50">Bangladesh · UTC+6</div></div></div></div></section>}
           <div className="mb-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {[
-              {label:"Active relationships",value:"—",note:"CRM connection pending",icon:Users,trend:"No data yet"},
-              {label:"Open legal matters",value:"—",note:"Matter register pending",icon:BriefcaseBusiness,trend:"No data yet"},
-              {label:"Active ventures",value:"04",note:"Defined in your blueprint",icon:FolderKanban,trend:"Portfolio"},
+              {label:"Active relationships",value:metrics?.contacts ?? "—",note:metrics ? "Workspace CRM records" : "CRM connection pending",icon:Users,trend:metrics ? "Live data" : "No data yet"},
+              {label:"Open legal matters",value:metrics?.matters ?? "—",note:metrics ? "Authorized matter register" : "Matter register pending",icon:BriefcaseBusiness,trend:metrics ? "Live data" : "No data yet"},
+              {label:"Active ventures",value:metrics ? String(metrics.activeVentures).padStart(2,"0") : "04",note:metrics ? "Live workspace records" : "Defined in your blueprint",icon:FolderKanban,trend:"Portfolio"},
               {label:"Monthly cash position",value:"—",note:"Finance connection pending",icon:Wallet,trend:"No data yet"}
             ].map(({label,value,note,icon:Icon,trend})=><div key={label} className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-soft"><div className="flex items-center justify-between"><span className="text-xs font-medium text-slate-500">{label}</span><span className="rounded-lg bg-slate-50 p-2 text-slate-500"><Icon size={16}/></span></div><div className="mt-4 text-[27px] font-semibold tracking-tight text-slate-900">{value}</div><div className="mt-1 flex items-center justify-between gap-2"><span className="text-[10px] text-slate-400">{note}</span><span className="text-[10px] text-slate-400">{trend}</span></div></div>)}
           </div>
           <div className="grid gap-6 xl:grid-cols-[1.35fr_1fr]">
             <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-soft md:p-6"><SectionTitle title="Priority actions" action="View task centre"/><div className="mb-4 flex items-center gap-2 rounded-xl bg-[#f7f8f7] px-3 py-2.5 text-[11px] text-slate-500"><Command size={14}/> Your next actions will appear here as tasks are connected.</div><div className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center"><div className="text-xs font-semibold text-slate-700">Your task centre is ready for its first task.</div><p className="mt-1 text-[11px] text-slate-400">No tasks have been entered yet. Nothing here is sample client or case data.</p></div></section>
-            <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-soft md:p-6"><SectionTitle title="Business ecosystem" action="Manage ventures"/><div className="space-y-2">{ventures.map(v=><div key={v.name} className="flex items-center gap-3 rounded-xl p-2.5 transition hover:bg-slate-50"><div className={`flex h-10 w-10 items-center justify-center rounded-xl text-[11px] font-bold text-slate-700 ${v.color}`}>{v.initials}</div><div className="min-w-0 flex-1"><div className="truncate text-xs font-semibold text-slate-800">{v.name}</div><div className="mt-1 text-[10px] text-slate-400">{v.type}</div></div><span className="rounded-full bg-slate-100 px-2 py-1 text-[9px] font-medium text-slate-500">Planned</span></div>)}</div></section>
+            <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-soft md:p-6"><SectionTitle title="Business ecosystem" action="Manage ventures"/><div className="space-y-2">{displayedVentures.length > 0 ? displayedVentures.map(v=><div key={v.name} className="flex items-center gap-3 rounded-xl p-2.5 transition hover:bg-slate-50"><div className={`flex h-10 w-10 items-center justify-center rounded-xl text-[11px] font-bold text-slate-700 ${v.color}`}>{v.initials}</div><div className="min-w-0 flex-1"><div className="truncate text-xs font-semibold text-slate-800">{v.name}</div><div className="mt-1 text-[10px] capitalize text-slate-400">{v.type}</div></div><span className="rounded-full bg-slate-100 px-2 py-1 text-[9px] font-medium capitalize text-slate-500">{v.status}</span></div>) : <p className="px-3 py-6 text-center text-xs text-slate-400">No ventures have been added to this workspace yet.</p>}</div></section>
           </div>
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-soft md:p-6"><SectionTitle title="Recent activity"/><div className="flex items-start gap-3 py-2"><div className="rounded-lg bg-[#edf3ef] p-2 text-[#315e50]"><MessageSquareText size={15}/></div><div><div className="text-xs font-medium text-slate-700">Foundation architecture documented</div><div className="mt-1 text-[10px] text-slate-400">Project setup · Draft pull request opened</div></div></div><div className="mt-2 flex items-start gap-3 border-t border-slate-100 pt-4"><div className="rounded-lg bg-[#f5f1e8] p-2 text-[#967849]"><FileText size={15}/></div><div><div className="text-xs font-medium text-slate-700">Implementation backlog established</div><div className="mt-1 text-[10px] text-slate-400">Delivery planning · Initial milestone</div></div></div></section>
