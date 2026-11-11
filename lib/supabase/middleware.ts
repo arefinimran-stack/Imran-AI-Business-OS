@@ -32,7 +32,9 @@ export async function updateSession(request: NextRequest) {
   if (data?.claims && isLogin) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/";
-    return NextResponse.redirect(redirectUrl);
+    const redirect = NextResponse.redirect(redirectUrl);
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+    return redirect;
   }
   return response;
 }
