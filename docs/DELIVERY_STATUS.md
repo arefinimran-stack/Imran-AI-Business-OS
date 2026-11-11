@@ -4,7 +4,8 @@ Last updated: 11 November 2026
 
 ## Completed
 
-- Founder Command Centre UI foundation.
+- Founder Command Centre UI foundation with navigation to live CRM, legal, venture and task modules.
+- Initial create/read workflows for contacts, legal matter summaries, ventures and operational tasks; finance, content, AI and automation areas remain clearly marked as not yet connected.
 - Next.js / React / TypeScript / Tailwind application scaffold.
 - GitHub Actions workflow for lint, typecheck and production build; npm lockfile committed and CI uses `npm ci`.
 - Supabase project connected to the implementation environment; project is healthy in `ap-south-1`.
