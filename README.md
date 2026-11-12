@@ -1,101 +1,48 @@
+# IMRAN AI BUSINESS OS
 
-IMRAN AI BUSINESS OS
+Personal AI Business Operating System for the founder's legal practice, business operations and digital ventures.
 
-Personal AI Business Operating System
+## Current build
 
-Founder: Imran Arefin
-Designation: Advocate, Supreme Court of Bangladesh
+This repository contains the mobile-first founder dashboard, department workspaces, local workflow engine and provider-independent AI interface.
 
-1. PROJECT VISION
+**Production caution:** Authentication, persistent database records, role permissions, secure document storage and provider data-governance controls must be completed and tested before confidential client or financial information is entered or sent to an external AI provider.
 
-Imran AI Business OS is a unified digital business management platform designed to manage legal practice, professional relationships, business development, financial operations, creative projects and AI-powered workflows.
+## AI providers
 
-Our objective is to build a personal digital office that helps manage, monitor and grow multiple professional and business activities from one central platform.
+The server-side AI adapter supports:
+- NVIDIA NIM / Nemotron through the OpenAI-compatible Chat Completions endpoint.
+- OpenAI as an alternative provider.
+- The local deterministic planner when no provider credential is configured.
 
-2. CORE DEPARTMENTS
+Configure these environment variables in the hosting platform (never in client-side code):
 
-No.	Department	Purpose
-01	Executive Dashboard	Central command centre
-02	Legal Chamber	Clients and case management
-03	CRM	Contacts and lead management
-04	Business Development	Opportunities and revenue
-05	YouTube Studio	Video production and planning
-06	Social Media Manager	Social media operations
-07	Creative Studio	Branding and design
-08	Music Studio	Music and audio projects
-09	Finance Manager	Income and expenditure
-10	AI Control Centre	Personal AI assistant
+| Variable | Purpose |
+| --- | --- |
+| `NVIDIA_API_KEY` | Encrypted NVIDIA API key from NVIDIA Build |
+| `NVIDIA_MODEL` | Optional model override; defaults to `nvidia/nemotron-3.5-super-vl-120b-a12b` |
+| `AI_PROVIDER` | `nvidia`, `openai`, or `auto`; auto prefers NVIDIA when configured |
+| `OPENAI_API_KEY` | Optional OpenAI fallback credential |
 
-3. BUSINESS ECOSYSTEM
+NVIDIA NIM endpoint: `https://integrate.api.nvidia.com/v1/chat/completions`.
 
-The platform will support:
-	•	Arefin Legal & Corporate Group
-	•	IA² Holdings Private Limited
-	•	C3 Lifestyle
-	•	Bold Cotton
-	•	Independent business ventures
-	•	Professional networking and client relationships
+The API key must be stored as an encrypted server-side environment variable in Vercel. Do not commit keys to Git or expose them through `NEXT_PUBLIC_*` variables. Provider selection is server-side.
 
-4. TECHNOLOGY STACK
+**Legal confidentiality:** Do not submit privileged, confidential, personally identifiable or otherwise sensitive client material to a third-party model until the applicable client consent, professional obligations, data-processing terms, retention settings and access controls have been reviewed. AI output is a drafting/research aid and must be verified by counsel.
 
-	•	Frontend: Next.js
-	•	Language: TypeScript
-	•	UI: Tailwind CSS
-	•	Database: Supabase
-	•	Authentication: Supabase Auth
-	•	AI Integration: OpenAI API
-	•	Deployment: Vercel
-	•	Version Control: GitHub
+## Run locally
 
-5. DEVELOPMENT PRIORITIES
+- Node.js 22+
+- `npm install`
+- `npm run dev`
+- `npm run build`
 
-Phase 1: Application Foundation
+## Deploy
 
-Phase 2: CRM and Income Generation
+The project is linked to Vercel through GitHub. A push to the configured production branch deploys automatically; feature branches can generate preview deployments.
 
-Phase 3: Legal Chamber Management
+## Project principles
 
-Phase 4: Business and Financial Management
-
-Phase 5: Creative Operations
-
-Phase 6: AI Integration and Automation
-
-6. DEVELOPMENT PRINCIPLES
-
-	•	Mobile-first design
-	•	Secure data management
-	•	Modular architecture
-	•	Centralised business information
-	•	AI-assisted decision-making
-	•	Scalable infrastructure
-	•	Cost-efficient development
-
-7. LONG-TERM VISION
-
-To establish a fully integrated personal AI business ecosystem that supports professional excellence, sustainable income generation, business expansion and long-term legacy building.
-
-Project Name: Imran AI Business OS
-Repository: Imran-AI-Business-OS
-Status: Initial Development
-Founder: Imran Arefin
-
-8. RUNNING THE APP
-
-	•	Install: npm install
-	•	Develop: npm run dev
-	•	Production build: npm run build (static export into out/)
-
-The app is mobile-first and works as an installable iOS app:
-
-	•	PWA: open in Safari → Share → Add to Home Screen (offline-capable)
-	•	Native App Store build: see docs/IOS-BUILD.md (Capacitor, config included)
-
-9. CURRENT STATUS
-
-	•	Phase 1 foundation complete: Executive Dashboard, mobile-first UI, app lock, PWA support
-	•	All 10 departments implemented with on-device data persistence
-	•	AI Command Centre: 11 specialised agents, natural-language planner, workflow execution
-	•	AI Autopilot: persistent resumable workflow engine with human approval gates
-	•	Supabase schema and background-worker scaffold ready for 24/7 cloud execution
-	•	See docs/ARCHITECTURE.md for completed / partial / planned status
+- Keep IMRAN AI Business OS separate from Arefin Chambers Legal AI.
+- Mobile-first, modular and cost-conscious.
+- Do not store confidential client data until authentication, access control and secure persistence are implemented.
