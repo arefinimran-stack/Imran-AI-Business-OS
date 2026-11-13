@@ -1,0 +1,17 @@
+{
+  "name": "imran-ai-business-os",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start -H 0.0.0.0 -p 8080"
+  },
+  "dependencies": {
+    "next": "15.5.9",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.1"
+  }
+}
