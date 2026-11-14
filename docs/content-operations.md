@@ -92,3 +92,8 @@ Before any public post:
 ## 12. Visual identity and design governance
 
 The premium visual standard is maintained separately in [Brand Visual System](brand-visual-system.md). It defines the brand-specific palettes, Pinterest trend-reference process, composition rules, image-rights requirements and final design review checklist. Content approval must include visual review as well as factual and editorial review.
+
+
+## 13. Market intelligence and genre portfolio
+
+The division-specific audience hypotheses, Bangladesh market evidence, competitor-monitoring process, content-format portfolio, platform roles, research standards and experiment framework are maintained in [Market Intelligence & Content Genres](market-intelligence-and-content-genres.md). Treat market observations as dated evidence or hypotheses according to their stated confidence; do not turn early signals into factual claims.
