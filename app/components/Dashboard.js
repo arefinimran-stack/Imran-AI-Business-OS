@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
 import ExtendedModules from './ExtendedModules';
+import { DIVISIONS, CENTRAL_FUNCTIONS } from '../lib/operating-model';
 
 const nav = [
-  ['Overview', '⌂'], ['Tasks', '☷'], ['Legal matters', '§'],
+  ['Overview', '⌂'], ['Divisions', '▦'], ['Central functions', '✳'], ['Tasks', '☷'], ['Legal matters', '§'],
   ['Contacts', '◎'], ['Business development', '↗'], ['Projects', '▦'], ['Finance', '৳'], ['Content studio', '▣'], ['Ventures', '◇'], ['Documents', '▤'],
 ];
 const dateLabel = value => value ? new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
@@ -127,6 +128,26 @@ export default function Dashboard() {
         {notice && <div className="os-alert success">{notice}</div>}
         {loading ? <div className="os-loading"><span className="os-spinner"/> Connecting to your live workspace…</div> : <>
           {active === 'Overview' && <Overview tasks={tasks} openTasks={openTasks} overdue={overdue} ventures={ventures} contacts={contacts} openMatters={openMatters} setActive={setActive} />}
+          {active === 'Divisions' && <section className="os-panel">
+            <PanelTitle title="Business divisions" sub="Four operating divisions coordinated by Central Command. Legal & Corporate is the first commercial priority." count={DIVISIONS.length + ' divisions'} />
+            <div className="os-venture-grid">{DIVISIONS.map(d => <article className="os-venture" key={d.id}>
+              <div className="os-venture-top"><span>Priority {d.priority}</span><span className="os-chip">{d.priority === 1 ? 'First priority' : 'Build phase'}</span></div>
+              <h3>{d.name}</h3><p>{d.purpose}</p>
+              <b>Workstreams</b><ul>{d.workstreams.map(w => <li key={w}>{w}</li>)}</ul>
+              <div className="os-division-actions">
+                {d.modules.map(m => <button key={m} className="os-chip-button" onClick={() => setActive(({ 'legal-matters':'Legal matters', documents:'Documents', contacts:'Contacts', 'business-development':'Business development', 'content-studio':'Content studio', projects:'Projects', finance:'Finance' })[m] || 'Overview')}>{m.replaceAll('-', ' ')}</button>)}
+              </div>
+              <small>Safeguard: {d.safeguards[0]}</small>
+            </article>)}</div>
+          </section>}
+          {active === 'Central functions' && <section className="os-panel">
+            <PanelTitle title="Central Command & shared functions" sub="Shared capabilities serving all four divisions, governed by one founder operating system." count={CENTRAL_FUNCTIONS.length + ' functions'} />
+            <div className="os-venture-grid">{CENTRAL_FUNCTIONS.map(f => <article className="os-venture" key={f.id}>
+              <div className="os-venture-top"><span>Central function</span><span className="os-chip">Shared</span></div>
+              <h3>{f.name}</h3><ul>{f.capabilities.map(c => <li key={c}>{c}</li>)}</ul>
+            </article>)}</div>
+            <div className="os-attention"><div><b>Content production and revenue workflow</b><small>Research → Editorial brief → Writing → Script & creative → Founder / Advocate review → Approval → Scheduling → Publishing → Analytics → Lead attribution.</small></div></div>
+          </section>}
           {active === 'Tasks' && <section className="os-panel"><PanelTitle title="Tasks & execution" sub="Create, prioritise and update work in the live workspace." count={openTasks.length + ' open'} />
             <form className="os-inline-form" onSubmit={addTask}><input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="Add a task or next action…" required/><select value={taskPriority} onChange={e => setTaskPriority(e.target.value)}><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option><option value="low">Low</option></select><button disabled={saving}>{saving ? 'Saving…' : 'Add task'}</button></form>
             <TaskList tasks={tasks} onStatus={changeTaskStatus}/></section>}
