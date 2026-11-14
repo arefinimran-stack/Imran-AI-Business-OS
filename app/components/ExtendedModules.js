@@ -15,7 +15,15 @@ const BRAND_OPTIONS = [
   { key: 'bold-cotton', label: 'Bold Cotton' },
 ];
 const PLATFORM_OPTIONS = ['facebook', 'instagram', 'youtube', 'linkedin'];
-const CONTENT_FORMATS = ['Short video', 'Long video', 'Post', 'Article', 'Carousel', 'Live', 'Document'];
+const CONTENT_FORMATS = ['Short video', 'Documentary short', 'Long video', 'Podcast / interview', 'Photo essay', 'Post', 'Article', 'Newsletter', 'Carousel', 'Infographic', 'FAQ / Q&A', 'Product demonstration', 'Live', 'Document'];
+const GENRES = {
+  'arefin-legal-corporate': ['Judgment brief', 'Statute explainer', 'Legal myth check', 'Procedure guide', 'Regulatory update', 'Corporate governance note', 'Legal history', 'Research analysis', 'Public-interest Q&A', 'Legal glossary'],
+  'imran-arefin': ['Founder field note', 'Advocacy craft', 'Leadership essay', 'Learning brief', 'Public-interest commentary', 'Behind-the-work documentary', 'Book / report response', 'Interview'],
+  'arefin-avenue': ['Destination field guide', 'Mini-documentary', 'Local voices interview', 'Heritage explainer', 'Food and craft story', 'Travel diary', 'Itinerary comparison', 'Seasonal travel brief', 'Photo essay', 'Responsible travel guide'],
+  'ia2-holdings': ['Boardroom brief', 'SME operating playbook', 'Market pulse', 'Business model analysis', 'Capital discipline', 'Governance explainer', 'Sector map', 'Operator interview', 'Scenario analysis', 'Quarterly outlook'],
+  'c3-lifestyle': ['Curated edit', 'How-it-works explainer', 'Everyday ritual', 'Design note', 'Comparison guide', 'Local maker story', 'Seasonal living guide', 'Consumer myth check', 'Editorial moodboard', 'Product review'],
+  'bold-cotton': ['Fabric school', 'Texture macro', 'Fit and silhouette guide', 'Styling edit', 'Garment care guide', 'Product detail film', 'Collection story', 'Behind the garment', 'Material comparison', 'Customer FAQ', 'Seasonal capsule']
+};
 const PILLARS = {
   'arefin-legal-corporate': ['Legal literacy', 'Judgment analysis', 'Legislative updates', 'Procedure and rights', 'Corporate governance'],
   'imran-arefin': ['Founder thought leadership', 'Advocacy craft', 'Leadership and execution', 'Public-interest commentary'],
@@ -42,6 +50,7 @@ export default function ExtendedModules({ active, org, supabase }) {
   const [category, setCategory] = useState('');
   const [platforms, setPlatforms] = useState(['facebook', 'youtube']);
   const [format, setFormat] = useState('Short video');
+  const [genre, setGenre] = useState('Judgment brief');
   const [scheduledAt, setScheduledAt] = useState('');
   const [publishedUrl, setPublishedUrl] = useState('');
   const [brandKey, setBrandKey] = useState('arefin-legal-corporate');
@@ -113,6 +122,7 @@ export default function ExtendedModules({ active, org, supabase }) {
         scheduled_at: scheduledAt ? new Date(scheduledAt).toISOString() : null,
         published_url: publishedUrl.trim() || null,
         campaign: 'editorial-calendar',
+        metadata: { genre, research_status: 'needs_research', editorial_standard: 'premium_evidence_led' },
       };
     }
     const { error: insertError } = await supabase.from(config.table).insert(payload);
@@ -190,6 +200,7 @@ export default function ExtendedModules({ active, org, supabase }) {
       {active === 'Content studio' && <>
         <select value={brandKey} onChange={e=>setBrandKey(e.target.value)}>{BRAND_OPTIONS.map(b=><option key={b.key} value={b.key}>{b.label}</option>)}</select>
         <select value={pillar} onChange={e=>setPillar(e.target.value)}>{(PILLARS[brandKey] || []).map(p=><option key={p}>{p}</option>)}</select>
+        <select value={genre} onChange={e=>setGenre(e.target.value)}>{(GENRES[brandKey] || []).map(g=><option key={g}>{g}</option>)}</select>
         <select value={language} onChange={e=>setLanguage(e.target.value)}><option>Bangla</option><option>English</option><option>Bangla + English</option></select>
         <div className="os-platform-picks">{PLATFORM_OPTIONS.map(p=><label key={p}><input type="checkbox" checked={platforms.includes(p)} onChange={()=>togglePlatform(p)}/>{p}</label>)}</div>
         <select value={format} onChange={e=>setFormat(e.target.value)}>{CONTENT_FORMATS.map(f=><option key={f}>{f}</option>)}</select>
@@ -208,9 +219,9 @@ export default function ExtendedModules({ active, org, supabase }) {
       {active === 'Projects' && <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Project</th><th>Priority</th><th>Status</th><th>Target date</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td><b>{r.name}</b><small>{r.description || ''}</small></td><td>{r.priority}</td><td><select value={r.status} onChange={e=>updateRow(r,'status',e.target.value)}><option value="planning">Planning</option><option value="active">Active</option><option value="on_hold">On hold</option><option value="completed">Completed</option><option value="archived">Archived</option></select></td><td>{dateText(r.target_date)}</td></tr>)}</tbody></table>{!rows.length && <Empty text="No projects yet. Add the first project above."/>}</div>}
       {active === 'Business development' && <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Opportunity</th><th>Stage</th><th>Estimated value</th><th>Next follow-up</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td><b>{r.title}</b><small>{r.notes || ''}</small></td><td><select value={r.stage} onChange={e=>updateRow(r,'stage',e.target.value)}><option value="new">New</option><option value="qualified">Qualified</option><option value="proposal">Proposal</option><option value="negotiation">Negotiation</option><option value="won">Won</option><option value="lost">Lost</option></select></td><td>{r.estimated_value == null ? '—' : money(r.estimated_value,r.currency)}</td><td>{dateText(r.next_follow_up_at)}</td></tr>)}</tbody></table>{!rows.length && <Empty text="No opportunities yet. Add a lead or opportunity above."/>}</div>}
       {active === 'Finance' && <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Category</th><th>Amount</th><th>Status</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{dateText(r.transaction_date)}</td><td><span className="os-chip">{r.entry_type}</span></td><td><b>{r.description}</b></td><td>{r.category || '—'}</td><td>{money(r.amount,r.currency)}</td><td>{r.status}</td></tr>)}</tbody></table>{!rows.length && <Empty text="No finance entries yet. Add verified income or expense records above."/>}</div>}
-      {active === 'Content studio' && <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Editorial item</th><th>Brand / pillar</th><th>Channels</th><th>Review</th><th>Workflow</th><th>Schedule / published</th><th>Action</th></tr></thead><tbody>{visibleRows.map(r=><tr key={r.id}>
+      {active === 'Content studio' && <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Editorial item</th><th>Brand / genre</th><th>Channels</th><th>Review</th><th>Workflow</th><th>Schedule / published</th><th>Action</th></tr></thead><tbody>{visibleRows.map(r=><tr key={r.id}>
         <td><b>{r.title}</b><small>{r.script || ''}</small>{r.source_platform && <small>Imported from {r.source_platform} · {r.external_post_id}</small>}</td>
-        <td><b>{BRAND_OPTIONS.find(b=>b.key===r.brand_key)?.label || (r.brand_key === 'historical-social-import' ? 'Historical archive' : r.brand_key)}</b><small>{r.content_pillar || '—'}</small></td>
+        <td><b>{BRAND_OPTIONS.find(b=>b.key===r.brand_key)?.label || (r.brand_key === 'historical-social-import' ? 'Historical archive' : r.brand_key)}</b><small>{r.content_pillar || '—'} · {r.metadata?.genre || 'Genre not set'}</small></td>
         <td>{(r.platforms || []).join(', ') || '—'}</td>
         <td><span className="os-chip">{r.review_status || '—'}</span></td>
         <td><select value={r.status} onChange={e=>updateRow(r,'status',e.target.value)}><option value="idea">Idea</option><option value="draft">Draft</option><option value="review">Review</option><option value="approved">Approved</option><option value="scheduled">Calendar planned</option><option value="published">Published</option><option value="archived">Archived</option></select></td>
