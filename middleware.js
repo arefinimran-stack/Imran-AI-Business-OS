@@ -18,8 +18,11 @@ export async function middleware(request) {
     },
   });
 
-  const { data: { claims } } = await supabase.auth.getClaims();
-  const signedIn = Boolean(claims?.sub);
+  // getClaims() can return a null data object when the session is absent or
+  // the auth response is incomplete. Treat that as signed out and fail closed.
+  const { data, error } = await supabase.auth.getClaims();
+  const claims = data?.claims ?? null;
+  const signedIn = !error && Boolean(claims?.sub);
   const path = request.nextUrl.pathname;
 
   if (!signedIn && path !== '/login' && path !== '/auth/callback' && path !== '/access-pending' && path !== '/setup-required') {
