@@ -6,7 +6,7 @@ on:
       - "integrations/notion-worker/**"
       - ".github/workflows/notion-worker-check.yml"
   push:
-    branches: [main]
+    branches: ["**"]
     paths:
       - "integrations/notion-worker/**"
       - ".github/workflows/notion-worker-check.yml"
