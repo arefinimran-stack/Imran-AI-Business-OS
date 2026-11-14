@@ -68,10 +68,10 @@ ntn workers exec getTask -d '{"pageId":"<PAGE_ID_FROM_GET_TASKS>"}'
 The schema builder marks every object field as required. For optional fields, pass `null` explicitly. Example duplicate-safe create test (use an existing task title and module):
 
 ```bash
-ntn workers exec createTask -d '{"task":"<EXISTING_TASK_TITLE>","module":"General","priority":"P2","deadline":null,"notes":null,"accountableAI":null,"recommendedAction":null,"trigger":null}'
+ntn workers exec createTask -d '{"task":"<EXISTING_TASK_TITLE>","module":"General","priority":"P2","deadline":null,"notes":"<REPLACEMENT_NOTES>","accountableAI":null,"recommendedAction":null,"trigger":null}'
 ```
 
-Example no-op-safe update shape (replace the page ID; set one field to a new value):
+Example update shape (replace the page ID and the notes placeholder; leave other fields null):
 
 ```bash
 ntn workers exec updateTask -d '{"pageId":"<PAGE_ID_FROM_GET_TASKS>","task":null,"status":null,"module":null,"priority":null,"deadline":null,"clearDeadline":false,"notes":null,"accountableAI":null,"recommendedAction":null,"trigger":null}'
