@@ -7,6 +7,7 @@ This workflow connects source collection, claim verification and production brie
 - `research_sources`: canonical source record, publisher, URL, source class, jurisdiction, pinpoint citation, reliability and limitations.
 - `research_claims`: one discrete claim, linked to its supporting source, pinpoint reference, evidence status, confidence, reviewer notes and verification metadata.
 - `research_briefs`: audience, objective, research question, editorial angle, genre, format, language, evidence gate, script outline, visual direction, platform adaptations, risk notes and review history.
+- `research_brief_claims`: explicit many-to-many links between each production brief and the claims it relies on. Database policies verify that both records belong to the same organisation.
 - `content_items`: existing editorial calendar and publishing record. A brief can be linked to a content item as production proceeds.
 
 All three research tables are organisation-scoped. RLS is enabled. Authenticated members can read records; owner/admin/staff can create and update; owner/admin can delete. Claim creation and update also verify that the linked source belongs to the same organisation.
