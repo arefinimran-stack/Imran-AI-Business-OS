@@ -55,6 +55,9 @@ export default function ExtendedModules({ active, org, supabase }) {
   const [editorialAngle, setEditorialAngle] = useState('');
   const [researchStatus, setResearchStatus] = useState('needs_research');
   const [sourceNotes, setSourceNotes] = useState('');
+  const [visualDirection, setVisualDirection] = useState('');
+  const [platformAdaptations, setPlatformAdaptations] = useState('');
+  const [factCheckNotes, setFactCheckNotes] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
   const [publishedUrl, setPublishedUrl] = useState('');
   const [brandKey, setBrandKey] = useState('arefin-legal-corporate');
@@ -129,13 +132,14 @@ export default function ExtendedModules({ active, org, supabase }) {
         scheduled_at: scheduledAt ? new Date(scheduledAt).toISOString() : null,
         published_url: publishedUrl.trim() || null,
         campaign: 'editorial-calendar',
-        metadata: { genre, audience_segment: audienceSegment.trim() || null, editorial_angle: editorialAngle.trim() || null, research_status: researchStatus, editorial_standard: 'premium_evidence_led', author_name: 'Imran Arefin' },
+        metadata: { genre, audience_segment: audienceSegment.trim() || null, editorial_angle: editorialAngle.trim() || null, research_status: researchStatus, visual_direction: visualDirection.trim() || null, platform_adaptations: platformAdaptations.trim() || null, fact_check_notes: factCheckNotes.trim() || null, editorial_standard: 'premium_evidence_led', author_name: 'Imran Arefin' },
+        
       };
     }
     const { error: insertError } = await supabase.from(config.table).insert(payload);
     setSaving(false);
     if (insertError) { setError(insertError.message); return; }
-    setName(''); setDescription(''); setValue(''); setCategory(''); setScheduledAt(''); setPublishedUrl(''); setAudienceSegment(''); setEditorialAngle(''); setResearchStatus('needs_research'); setSourceNotes('');
+    setName(''); setDescription(''); setValue(''); setCategory(''); setScheduledAt(''); setPublishedUrl(''); setAudienceSegment(''); setEditorialAngle(''); setResearchStatus('needs_research'); setSourceNotes(''); setVisualDirection(''); setPlatformAdaptations(''); setFactCheckNotes('');
     setNotice(active === 'Content studio' ? 'Content idea saved to the central editorial calendar.' : active + ' record saved.');
     await load();
   }
@@ -211,7 +215,10 @@ export default function ExtendedModules({ active, org, supabase }) {
         <input value={audienceSegment} onChange={e=>setAudienceSegment(e.target.value)} placeholder="Intended audience segment (optional)"/>
         <input value={editorialAngle} onChange={e=>setEditorialAngle(e.target.value)} placeholder="Editorial angle / central question (optional)"/>
         <select value={researchStatus} onChange={e=>setResearchStatus(e.target.value)}><option value="needs_research">Needs research</option><option value="research_in_progress">Research in progress</option><option value="evidence_ready">Evidence ready</option><option value="fact_checked">Fact-checked</option></select>
-        <textarea value={sourceNotes} onChange={e=>setSourceNotes(e.target.value)} placeholder="Research sources, URLs, evidence notes and fact-check references…" rows={2}/>
+        <textarea value={sourceNotes} onChange={e=>setSourceNotes(e.target.value)} placeholder="Research sources, URLs and evidence notes…" rows={2}/>
+        <textarea value={factCheckNotes} onChange={e=>setFactCheckNotes(e.target.value)} placeholder="Fact-check notes: claim, evidence, date checked, unresolved caveats…" rows={2}/>
+        <textarea value={visualDirection} onChange={e=>setVisualDirection(e.target.value)} placeholder="Creative direction: composition, imagery, typography, colour and visual treatment…" rows={2}/>
+        <textarea value={platformAdaptations} onChange={e=>setPlatformAdaptations(e.target.value)} placeholder="Platform adaptations: hook, caption, CTA, length and format changes per channel…" rows={2}/>
         <select value={language} onChange={e=>setLanguage(e.target.value)}><option>Bangla</option><option>English</option><option>Bangla + English</option></select>
         <div className="os-platform-picks">{PLATFORM_OPTIONS.map(p=><label key={p}><input type="checkbox" checked={platforms.includes(p)} onChange={()=>togglePlatform(p)}/>{p}</label>)}</div>
         <select value={format} onChange={e=>setFormat(e.target.value)}>{CONTENT_FORMATS.map(f=><option key={f}>{f}</option>)}</select>
@@ -232,7 +239,7 @@ export default function ExtendedModules({ active, org, supabase }) {
       {active === 'Finance' && <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Category</th><th>Amount</th><th>Status</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{dateText(r.transaction_date)}</td><td><span className="os-chip">{r.entry_type}</span></td><td><b>{r.description}</b></td><td>{r.category || '—'}</td><td>{money(r.amount,r.currency)}</td><td>{r.status}</td></tr>)}</tbody></table>{!rows.length && <Empty text="No finance entries yet. Add verified income or expense records above."/>}</div>}
       {active === 'Content studio' && <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Editorial item</th><th>Brand / genre</th><th>Channels</th><th>Review</th><th>Workflow</th><th>Schedule / published</th><th>Action</th></tr></thead><tbody>{visibleRows.map(r=><tr key={r.id}>
         <td><b>{r.title}</b><small>{r.script || ''}</small>{r.source_platform && <small>Imported from {r.source_platform} · {r.external_post_id}</small>}</td>
-        <td><b>{BRAND_OPTIONS.find(b=>b.key===r.brand_key)?.label || (r.brand_key === 'historical-social-import' ? 'Historical archive' : r.brand_key)}</b><small>{r.content_pillar || '—'} · {r.metadata?.genre || 'Genre not set'}</small><small>{r.metadata?.audience_segment || 'Audience not set'} · {r.metadata?.research_status || 'Research status not set'}</small>{r.source_notes && <small>Sources: {r.source_notes}</small>}</td>
+        <td><b>{BRAND_OPTIONS.find(b=>b.key===r.brand_key)?.label || (r.brand_key === 'historical-social-import' ? 'Historical archive' : r.brand_key)}</b><small>{r.content_pillar || '—'} · {r.metadata?.genre || 'Genre not set'}</small><small>{r.metadata?.audience_segment || 'Audience not set'} · {r.metadata?.research_status || 'Research status not set'}</small>{r.metadata?.editorial_angle && <small>Angle: {r.metadata.editorial_angle}</small>}{r.source_notes && <small>Sources: {r.source_notes}</small>}{r.metadata?.fact_check_notes && <small>Fact-check: {r.metadata.fact_check_notes}</small>}{r.metadata?.visual_direction && <small>Visual: {r.metadata.visual_direction}</small>}{r.metadata?.platform_adaptations && <small>Adaptations: {r.metadata.platform_adaptations}</small>}</td>
         <td>{(r.platforms || []).join(', ') || '—'}</td>
         <td><span className="os-chip">{r.review_status || '—'}</span></td>
         <td><select value={r.status} onChange={e=>updateRow(r,'status',e.target.value)}><option value="idea">Idea</option><option value="draft">Draft</option><option value="review">Review</option><option value="approved">Approved</option><option value="scheduled">Calendar planned</option><option value="published">Published</option><option value="archived">Archived</option></select></td>
