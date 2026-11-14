@@ -28,6 +28,11 @@ export default function Dashboard() {
   const [notice, setNotice] = useState('');
   const [taskTitle, setTaskTitle] = useState('');
   const [taskPriority, setTaskPriority] = useState('normal');
+  const [taskDescription, setTaskDescription] = useState('');
+  const [taskDue, setTaskDue] = useState('');
+  const [documentTitle, setDocumentTitle] = useState('');
+  const [documentContent, setDocumentContent] = useState('');
+  const [documentLanguage, setDocumentLanguage] = useState('English');
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
@@ -68,10 +73,10 @@ export default function Dashboard() {
   async function addTask(event) {
     event.preventDefault(); if (!taskTitle.trim() || !org) return;
     setSaving(true); setError(''); setNotice('');
-    const { error: insertError } = await supabase.from('tasks').insert({ organization_id: org.id, title: taskTitle.trim(), priority: taskPriority, status: 'todo' });
+    const { error: insertError } = await supabase.from('tasks').insert({ organization_id: org.id, title: taskTitle.trim(), description: taskDescription.trim() || null, due_at: taskDue ? new Date(taskDue + 'T09:00:00').toISOString() : null, priority: taskPriority, status: 'todo' });
     setSaving(false);
     if (insertError) { setError(insertError.message); return; }
-    setTaskTitle(''); setNotice('Task saved to the workspace.'); await load();
+    setTaskTitle(''); setTaskDescription(''); setTaskDue(''); setNotice('Task saved to the workspace.'); await load();
   }
 
   async function changeTaskStatus(task, status) {
@@ -104,6 +109,15 @@ export default function Dashboard() {
     setSaving(false);
     if (insertError) { setError(insertError.message); return; }
     setMatterTitle(''); setMatterType(''); setMatterCourt(''); setMatterHearing(''); setNotice('Confidential legal matter created.'); await load();
+  }
+
+  async function addDocument(event) {
+    event.preventDefault(); if (!documentTitle.trim() || !documentContent.trim() || !org) return;
+    setSaving(true); setError(''); setNotice('');
+    const { error: insertError } = await supabase.from('legal_documents').insert({ organization_id: org.id, title: documentTitle.trim(), content: documentContent.trim(), language: documentLanguage, template_key: 'custom', status: 'draft' });
+    setSaving(false);
+    if (insertError) { setError(insertError.message); return; }
+    setDocumentTitle(''); setDocumentContent(''); setNotice('Document saved as a draft for Advocate review.'); await load();
   }
 
   async function changeMatter(matter, patch) {
@@ -157,7 +171,7 @@ export default function Dashboard() {
             <div className="os-attention"><div><b>Content production and revenue workflow</b><small>Research → Editorial brief → Writing → Script & creative → Founder / Advocate review → Approval → Scheduling → Publishing → Analytics → Lead attribution.</small></div></div>
           </section>}
           {active === 'Tasks' && <section className="os-panel"><PanelTitle title="Tasks & execution" sub="Create, prioritise and update work in the live workspace." count={openTasks.length + ' open'} />
-            <form className="os-inline-form" onSubmit={addTask}><input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="Add a task or next action…" required/><select value={taskPriority} onChange={e => setTaskPriority(e.target.value)}><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option><option value="low">Low</option></select><button disabled={saving}>{saving ? 'Saving…' : 'Add task'}</button></form>
+            <form className="os-inline-form" onSubmit={addTask}><input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="Add a task or next action…" required/><input value={taskDescription} onChange={e => setTaskDescription(e.target.value)} placeholder="Details / acceptance criteria (optional)"/><input type="date" value={taskDue} onChange={e => setTaskDue(e.target.value)} aria-label="Task due date (optional)"/><select value={taskPriority} onChange={e => setTaskPriority(e.target.value)}><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option><option value="low">Low</option></select><button disabled={saving}>{saving ? 'Saving…' : 'Add task'}</button></form>
             <TaskList tasks={tasks} onStatus={changeTaskStatus}/></section>}
           {active === 'Legal matters' && <section className="os-panel"><PanelTitle title="Legal matters" sub="Restricted legal workspace. Matters are confidential by default." count={openMatters.length + ' open'} />
             <form className="os-form-grid" onSubmit={addMatter}><input value={matterTitle} onChange={e => setMatterTitle(e.target.value)} placeholder="Matter title / short description" required/><input value={matterType} onChange={e => setMatterType(e.target.value)} placeholder="Matter type (e.g. Civil, Criminal, Company)"/><input value={matterCourt} onChange={e => setMatterCourt(e.target.value)} placeholder="Court / forum"/><select value={matterPriority} onChange={e => setMatterPriority(e.target.value)}><option value="normal">Normal priority</option><option value="high">High priority</option><option value="urgent">Urgent priority</option><option value="low">Low priority</option></select><input type="date" value={matterHearing} onChange={e => setMatterHearing(e.target.value)} aria-label="Next hearing date (optional)"/><button disabled={saving}>{saving ? 'Saving…' : 'Create confidential matter'}</button></form>
@@ -167,7 +181,7 @@ export default function Dashboard() {
             <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Name</th><th>Organisation</th><th>Type</th><th>Email / Phone</th></tr></thead><tbody>{contacts.map(c=><tr key={c.id}><td><b>{c.full_name}</b></td><td>{c.organization_name || '—'}</td><td><span className="os-chip">{c.contact_type}</span></td><td>{c.email || '—'}<small>{c.phone || ''}</small></td></tr>)}</tbody></table>{!contacts.length && <Empty text="No contacts yet. Add the first relationship above."/>}</div></section>}
           {active === 'Ventures' && <section className="os-panel"><PanelTitle title="Venture portfolio" sub="Core business units registered in the IMRAN AI workspace." count={ventures.length + ' ventures'} /><div className="os-venture-grid">{ventures.map(v=><article className="os-venture" key={v.id}><div className="os-venture-top"><span>{v.category || 'Business'}</span><span className="os-chip">{v.status}</span></div><h3>{v.name}</h3><p>{v.description || 'Business unit registered. Operating details and financial metrics are intentionally left blank until verified.'}</p><small>{v.slug}</small></article>)}</div>{!ventures.length && <Empty text="No ventures have been registered yet."/>}</section>}
           {['Projects','Business development','Finance','Content studio'].includes(active) && <ExtendedModules active={active} org={org} supabase={supabase} />}
-          {active === 'Documents' && <section className="os-panel"><PanelTitle title="Legal documents" sub="Drafts and final documents linked to the legal workspace." count={documents.length + ' documents'} /><div className="os-table-wrap"><table className="os-table"><thead><tr><th>Document</th><th>Template</th><th>Language</th><th>Status</th><th>Created</th></tr></thead><tbody>{documents.map(d=><tr key={d.id}><td><b>{d.title}</b></td><td>{d.template_key}</td><td>{d.language}</td><td><span className="os-chip">{d.status}</span></td><td>{dateLabel(d.created_at)}</td></tr>)}</tbody></table>{!documents.length && <Empty text="No documents saved yet. Document drafting will be enabled after the secure workspace is fully validated."/>}</div></section>}
+          {active === 'Documents' && <section className="os-panel"><PanelTitle title="Legal documents" sub="Drafts and final documents linked to the legal workspace. All generated text remains a draft until reviewed by the Advocate." count={documents.length + ' documents'} /><form className="os-form-grid" onSubmit={addDocument}><input value={documentTitle} onChange={e => setDocumentTitle(e.target.value)} placeholder="Document title" required/><select value={documentLanguage} onChange={e => setDocumentLanguage(e.target.value)}><option>English</option><option>Bangla</option></select><textarea value={documentContent} onChange={e => setDocumentContent(e.target.value)} placeholder="Draft text / clauses / notes. Verify all facts and authorities before use." rows={5} required/><button disabled={saving}>{saving ? 'Saving…' : 'Save draft for review'}</button></form><div className="os-table-wrap"><table className="os-table"><thead><tr><th>Document</th><th>Template</th><th>Language</th><th>Status</th><th>Created</th></tr></thead><tbody>{documents.map(d=><tr key={d.id}><td><b>{d.title}</b></td><td>{d.template_key}</td><td>{d.language}</td><td><span className="os-chip">{d.status}</span></td><td>{dateLabel(d.created_at)}</td></tr>)}</tbody></table>{!documents.length && <Empty text="No documents saved yet. Document drafting will be enabled after the secure workspace is fully validated."/>}</div></section>}
         </>}
         <footer className="os-footer"><span>IMRAN AI BUSINESS OS</span><span>PRIVATE WORKSPACE · LIVE DATA · BANGLADESH</span></footer>
       </div>
