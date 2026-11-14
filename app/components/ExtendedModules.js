@@ -92,7 +92,9 @@ export default function ExtendedModules({ active, org, supabase }) {
   useEffect(() => {
     const choices = PILLARS[brandKey] || [];
     if (choices.length && !choices.includes(pillar)) setPillar(choices[0]);
-  }, [brandKey, pillar]);
+    const genreChoices = GENRES[brandKey] || [];
+    if (genreChoices.length && !genreChoices.includes(genre)) setGenre(genreChoices[0]);
+  }, [brandKey, pillar, genre]);
 
   function togglePlatform(platform) {
     setPlatforms(current => current.includes(platform) ? current.filter(item => item !== platform) : [...current, platform]);
