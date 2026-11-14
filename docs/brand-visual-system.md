@@ -100,3 +100,9 @@ For each campaign:
 - [ ] Contrast and accessibility checked
 - [ ] Platform-specific dimensions and safe areas checked
 - [ ] Final approved asset and source file archived
+
+## Founder identity, portrait and contact integrity
+
+All founder-led, advocate-led, author-led and presenter-led visual materials must use the identity of Imran Arefin when a named individual is required. Use the founder's approved original reference photograph as the facial identity source. Creative treatments may change clothing, background, lighting, pose framing, crop, colour grade, illustration style and production setting, but must preserve the founder's actual face and recognisable facial features. Do not substitute, blend, fabricate or use another person's face as Imran Arefin.
+
+When a design identifies the advocate, founder, author or presenter by name, use the name **Imran Arefin**. Use only the founder's verified professional email address and contact number supplied directly by the founder in contact blocks. Never invent, borrow or substitute another person's contact details. Do not expose personal contact details in source code, public repositories, metadata or internal documents unless a specific public-facing placement has been authorised. For any design requiring a portrait but lacking access to the approved reference image, hold the portrait element rather than generating an unrelated face.
