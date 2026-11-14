@@ -52,6 +52,7 @@ export default function ExtendedModules({ active, org, supabase }) {
   const [briefAudience, setBriefAudience] = useState('');
   const [briefObjective, setBriefObjective] = useState('');
   const [briefGate, setBriefGate] = useState('researching');
+  const [briefClaimIds, setBriefClaimIds] = useState([]);
   const [ventures, setVentures] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -189,10 +190,15 @@ export default function ExtendedModules({ active, org, supabase }) {
   async function saveResearchBrief(event) {
     event.preventDefault(); if (!org || !briefTitle.trim()) return;
     setSaving(true); setError('');
-    const { error: insertError } = await supabase.from('research_briefs').insert({ organization_id: org.id, brand_key: brandKey, title: briefTitle.trim(), audience: briefAudience.trim() || null, objective: briefObjective.trim() || null, research_question: briefQuestion.trim() || null, evidence_gate: briefGate, genre, format: format.toLowerCase().replaceAll(' ', '_'), language, editorial_angle: editorialAngle.trim() || null, visual_direction: visualDirection.trim() || null, platform_adaptations: { channels: platforms, notes: platformAdaptations.trim() || null }, risk_notes: factCheckNotes.trim() || null });
-    setSaving(false); if (insertError) { setError(insertError.message); return; }
-    setBriefTitle(''); setBriefAudience(''); setBriefObjective(''); setBriefQuestion('');
-    setNotice('Research-to-production brief saved. It has not been approved for publication.'); await load();
+    const { data: brief, error: insertError } = await supabase.from('research_briefs').insert({ organization_id: org.id, brand_key: brandKey, title: briefTitle.trim(), audience: briefAudience.trim() || null, objective: briefObjective.trim() || null, research_question: briefQuestion.trim() || null, evidence_gate: briefGate, genre, format: format.toLowerCase().replaceAll(' ', '_'), language, editorial_angle: editorialAngle.trim() || null, visual_direction: visualDirection.trim() || null, platform_adaptations: { channels: platforms, notes: platformAdaptations.trim() || null }, risk_notes: factCheckNotes.trim() || null }).select('id').single();
+    if (insertError) { setSaving(false); setError(insertError.message); return; }
+    if (briefClaimIds.length) {
+      const links = briefClaimIds.map(claim_id => ({ organization_id: org.id, brief_id: brief.id, claim_id }));
+      const { error: linkError } = await supabase.from('research_brief_claims').insert(links);
+      if (linkError) { setSaving(false); setError('Brief saved, but claim links need attention: ' + linkError.message); await load(); return; }
+    }
+    setSaving(false); setBriefTitle(''); setBriefAudience(''); setBriefObjective(''); setBriefQuestion(''); setBriefClaimIds([]);
+    setNotice('Research brief saved with its evidence links. It has not been approved for publication.'); await load();
   }
 
   async function updateRow(row, field, nextValue) {
@@ -280,6 +286,7 @@ export default function ExtendedModules({ active, org, supabase }) {
             <input value={briefObjective} onChange={e=>setBriefObjective(e.target.value)} placeholder="Communication objective"/>
             <textarea value={briefQuestion} onChange={e=>setBriefQuestion(e.target.value)} placeholder="Research question / what must be established?" rows={2}/>
             <select value={briefGate} onChange={e=>setBriefGate(e.target.value)}><option value="not_started">Not started</option><option value="researching">Researching</option><option value="evidence_checked">Evidence checked</option><option value="needs_review">Needs review</option><option value="approved_for_production">Approved for production</option></select>
+            <fieldset className="os-claim-link-picker"><legend>Link supporting claims</legend>{researchClaims.length ? researchClaims.map(cl=><label key={cl.id}><input type="checkbox" checked={briefClaimIds.includes(cl.id)} onChange={e=>setBriefClaimIds(current=>e.target.checked ? [...current,cl.id] : current.filter(id=>id!==cl.id))}/><span>{cl.claim_text} <small>({cl.evidence_status})</small></span></label>) : <small>Register claims first to attach evidence to this brief.</small>}</fieldset>
             <button disabled={saving}>Save brief</button>
           </form>
         </div>
