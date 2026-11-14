@@ -1,0 +1,28 @@
+name: Notion Worker Typecheck
+
+on:
+  pull_request:
+    paths:
+      - "integrations/notion-worker/**"
+      - ".github/workflows/notion-worker-check.yml"
+  push:
+    branches: [main]
+    paths:
+      - "integrations/notion-worker/**"
+      - ".github/workflows/notion-worker-check.yml"
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: integrations/notion-worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: integrations/notion-worker/package-lock.json
+      - run: npm install --no-audit --no-fund
+      - run: npm run typecheck
