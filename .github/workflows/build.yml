@@ -16,7 +16,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - run: npm run build
+      - name: Build application
+        run: npm run build
+        env:
+          # Build-time placeholders only; no live Supabase requests or credentials.
+          NEXT_PUBLIC_SUPABASE_URL: https://build-placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: build-placeholder-publishable-key
 
   notion-worker-typecheck:
     runs-on: ubuntu-latest
