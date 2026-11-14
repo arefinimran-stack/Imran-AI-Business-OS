@@ -97,3 +97,7 @@ The premium visual standard is maintained separately in [Brand Visual System](br
 ## 13. Market intelligence and genre portfolio
 
 The division-specific audience hypotheses, Bangladesh market evidence, competitor-monitoring process, content-format portfolio, platform roles, research standards and experiment framework are maintained in [Market Intelligence & Content Genres](market-intelligence-and-content-genres.md). Treat market observations as dated evidence or hypotheses according to their stated confidence; do not turn early signals into factual claims.
+
+## 14. Research-to-production briefs
+
+The mandatory claim-register, evidence gates, script structures, division-specific pilot briefs, visual direction and editorial release checklist are defined in [Research-to-Production Brief Standard](research-to-production-brief-standard.md). This specification governs production readiness; it does not grant permission to publish.
