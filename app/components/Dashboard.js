@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
+import ExtendedModules from './ExtendedModules';
 
 const nav = [
   ['Overview', '⌂'], ['Tasks', '☷'], ['Legal matters', '§'],
-  ['Contacts', '◎'], ['Ventures', '◇'], ['Documents', '▤'],
+  ['Contacts', '◎'], ['Business development', '↗'], ['Projects', '▦'], ['Finance', '৳'], ['Content studio', '▣'], ['Ventures', '◇'], ['Documents', '▤'],
 ];
 const dateLabel = value => value ? new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 const priorityLabel = value => ({ urgent: 'Urgent', high: 'High', normal: 'Normal', low: 'Low' }[value] || value);
@@ -136,6 +137,7 @@ export default function Dashboard() {
             <form className="os-form-grid contact-form" onSubmit={addContact}><input value={contactName} onChange={e => setContactName(e.target.value)} placeholder="Full name" required/><input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="Email address"/><input value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="Phone number"/><select value={contactType} onChange={e => setContactType(e.target.value)}><option value="prospect">Prospect</option><option value="client">Client</option><option value="partner">Partner</option><option value="vendor">Vendor</option><option value="investor">Investor</option><option value="other">Other</option></select><button disabled={saving}>{saving ? 'Saving…' : 'Add contact'}</button></form>
             <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Name</th><th>Organisation</th><th>Type</th><th>Email / Phone</th></tr></thead><tbody>{contacts.map(c=><tr key={c.id}><td><b>{c.full_name}</b></td><td>{c.organization_name || '—'}</td><td><span className="os-chip">{c.contact_type}</span></td><td>{c.email || '—'}<small>{c.phone || ''}</small></td></tr>)}</tbody></table>{!contacts.length && <Empty text="No contacts yet. Add the first relationship above."/>}</div></section>}
           {active === 'Ventures' && <section className="os-panel"><PanelTitle title="Venture portfolio" sub="Core business units registered in the IMRAN AI workspace." count={ventures.length + ' ventures'} /><div className="os-venture-grid">{ventures.map(v=><article className="os-venture" key={v.id}><div className="os-venture-top"><span>{v.category || 'Business'}</span><span className="os-chip">{v.status}</span></div><h3>{v.name}</h3><p>{v.description || 'Business unit registered. Operating details and financial metrics are intentionally left blank until verified.'}</p><small>{v.slug}</small></article>)}</div>{!ventures.length && <Empty text="No ventures have been registered yet."/>}</section>}
+          {['Projects','Business development','Finance','Content studio'].includes(active) && <ExtendedModules active={active} org={org} supabase={supabase} />}
           {active === 'Documents' && <section className="os-panel"><PanelTitle title="Legal documents" sub="Drafts and final documents linked to the legal workspace." count={documents.length + ' documents'} /><div className="os-table-wrap"><table className="os-table"><thead><tr><th>Document</th><th>Template</th><th>Language</th><th>Status</th><th>Created</th></tr></thead><tbody>{documents.map(d=><tr key={d.id}><td><b>{d.title}</b></td><td>{d.template_key}</td><td>{d.language}</td><td><span className="os-chip">{d.status}</span></td><td>{dateLabel(d.created_at)}</td></tr>)}</tbody></table>{!documents.length && <Empty text="No documents saved yet. Document drafting will be enabled after the secure workspace is fully validated."/>}</div></section>}
         </>}
         <footer className="os-footer"><span>IMRAN AI BUSINESS OS</span><span>PRIVATE WORKSPACE · LIVE DATA · BANGLADESH</span></footer>
