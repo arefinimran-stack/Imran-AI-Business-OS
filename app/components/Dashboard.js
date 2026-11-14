@@ -129,9 +129,9 @@ export default function Dashboard() {
         {loading ? <div className="os-loading"><span className="os-spinner"/> Connecting to your live workspace…</div> : <>
           {active === 'Overview' && <Overview tasks={tasks} openTasks={openTasks} overdue={overdue} ventures={ventures} contacts={contacts} openMatters={openMatters} setActive={setActive} />}
           {active === 'Divisions' && <section className="os-panel">
-            <PanelTitle title="Business divisions" sub="Four operating divisions coordinated by Central Command. Legal & Corporate is the first commercial priority." count={DIVISIONS.length + ' divisions'} />
+            <PanelTitle title="Business divisions" sub="The approved blueprint is preserved. Legal & Corporate leads execution; IA² Holdings follows; C3 Lifestyle and Bold Cotton remain queued for later." count={DIVISIONS.length + ' divisions'} />
             <div className="os-venture-grid">{DIVISIONS.map(d => <article className="os-venture" key={d.id}>
-              <div className="os-venture-top"><span>Priority {d.priority}</span><span className="os-chip">{d.priority === 1 ? 'First priority' : 'Build phase'}</span></div>
+              <div className="os-venture-top"><span>Priority {d.priority}</span><span className="os-chip">{d.queueLabel}</span></div>
               <h3>{d.name}</h3><p>{d.purpose}</p>
               <b>Workstreams</b><ul>{d.workstreams.map(w => <li key={w}>{w}</li>)}</ul>
               <div className="os-division-actions">
