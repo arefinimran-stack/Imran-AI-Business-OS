@@ -167,6 +167,34 @@ export default function ExtendedModules({ active, org, supabase }) {
     await load();
   }
 
+  async function saveResearchSource(event) {
+    event.preventDefault(); if (!org || !sourceTitle.trim() || !sourceUrl.trim()) return;
+    setSaving(true); setError('');
+    const venture = ventures.find(v => v.slug === brandKey);
+    const { error: insertError } = await supabase.from('research_sources').insert({ organization_id: org.id, venture_id: venture?.id || null, brand_key: brandKey, title: sourceTitle.trim(), publisher: sourcePublisher.trim() || null, source_url: sourceUrl.trim(), source_type: sourceType, exact_reference: sourceReference.trim() || null });
+    setSaving(false); if (insertError) { setError(insertError.message); return; }
+    setSourceTitle(''); setSourceUrl(''); setSourcePublisher(''); setSourceReference('');
+    setNotice('Research source added to the evidence register.'); await load();
+  }
+
+  async function saveResearchClaim(event) {
+    event.preventDefault(); if (!org || !claimSourceId || !claimText.trim()) return;
+    setSaving(true); setError('');
+    const { error: insertError } = await supabase.from('research_claims').insert({ organization_id: org.id, source_id: claimSourceId, claim_text: claimText.trim(), exact_reference: claimReference.trim() || null, evidence_status: claimStatus });
+    setSaving(false); if (insertError) { setError(insertError.message); return; }
+    setClaimText(''); setClaimReference('');
+    setNotice('Claim linked to its supporting source. Verification remains explicit.'); await load();
+  }
+
+  async function saveResearchBrief(event) {
+    event.preventDefault(); if (!org || !briefTitle.trim()) return;
+    setSaving(true); setError('');
+    const { error: insertError } = await supabase.from('research_briefs').insert({ organization_id: org.id, brand_key: brandKey, title: briefTitle.trim(), audience: briefAudience.trim() || null, objective: briefObjective.trim() || null, research_question: briefQuestion.trim() || null, evidence_gate: briefGate, genre, format: format.toLowerCase().replaceAll(' ', '_'), language, editorial_angle: editorialAngle.trim() || null, visual_direction: visualDirection.trim() || null, platform_adaptations: { channels: platforms, notes: platformAdaptations.trim() || null }, risk_notes: factCheckNotes.trim() || null });
+    setSaving(false); if (insertError) { setError(insertError.message); return; }
+    setBriefTitle(''); setBriefAudience(''); setBriefObjective(''); setBriefQuestion('');
+    setNotice('Research-to-production brief saved. It has not been approved for publication.'); await load();
+  }
+
   async function updateRow(row, field, nextValue) {
     if (active === 'Content studio') {
       if (field === 'status' && nextValue === 'scheduled' && row.review_status !== 'approved') {
@@ -225,6 +253,39 @@ export default function ExtendedModules({ active, org, supabase }) {
         {brandCounts.map(b => <article className="os-venture" key={b.key}><div className="os-venture-top"><span>Editorial scope</span><span className="os-chip">{b.count} items</span></div><h3>{b.label}</h3><p>{(PILLARS[b.key] || []).join(' · ')}</p></article>)}
       </div>
       <div className="os-attention"><div><b>Publishing connection status</b><small>Upload-Post is connected in ChatGPT. The deployed app still needs its own server-side provider credential before it can publish or schedule directly. Calendar records and approval controls below are live in Supabase; no public post is sent from this screen.</small></div></div>
+      <div className="os-research-desk">
+        <div className="os-panel-head"><div><h3>Research &amp; evidence desk</h3><p>Source register → claim verification → production brief. Records are organisation-scoped.</p></div><span className="os-count">{researchSources.length} sources · {researchClaims.length} claims · {researchBriefs.length} briefs</span></div>
+        <div className="os-form-grid">
+          <form className="os-form-grid" onSubmit={saveResearchSource}>
+            <h4>1. Add source</h4>
+            <input value={sourceTitle} onChange={e=>setSourceTitle(e.target.value)} placeholder="Source title / document name" required/>
+            <input type="url" value={sourceUrl} onChange={e=>setSourceUrl(e.target.value)} placeholder="Canonical source URL" required/>
+            <input value={sourcePublisher} onChange={e=>setSourcePublisher(e.target.value)} placeholder="Publisher / issuing authority"/>
+            <select value={sourceType} onChange={e=>setSourceType(e.target.value)}>{['primary_law','official_data','official_guidance','judgment','regulatory','academic','reputable_secondary','industry','social_signal','other'].map(v=><option key={v} value={v}>{v.replaceAll('_',' ')}</option>)}</select>
+            <input value={sourceReference} onChange={e=>setSourceReference(e.target.value)} placeholder="Exact section, page, paragraph or table"/>
+            <button disabled={saving}>Save source</button>
+          </form>
+          <form className="os-form-grid" onSubmit={saveResearchClaim}>
+            <h4>2. Register a claim</h4>
+            <select value={claimSourceId} onChange={e=>setClaimSourceId(e.target.value)} required><option value="">Choose supporting source</option>{researchSources.map(s=><option key={s.id} value={s.id}>{s.title}</option>)}</select>
+            <textarea value={claimText} onChange={e=>setClaimText(e.target.value)} placeholder="Exact factual / legal / market claim to verify" rows={3} required/>
+            <input value={claimReference} onChange={e=>setClaimReference(e.target.value)} placeholder="Pinpoint reference in the source"/>
+            <select value={claimStatus} onChange={e=>setClaimStatus(e.target.value)}><option value="unverified">Unverified</option><option value="supported">Supported</option><option value="partially_supported">Partially supported</option><option value="contradicted">Contradicted</option><option value="outdated">Outdated</option><option value="needs_primary_source">Needs primary source</option></select>
+            <button disabled={saving || !researchSources.length}>Save claim</button>
+          </form>
+          <form className="os-form-grid" onSubmit={saveResearchBrief}>
+            <h4>3. Create production brief</h4>
+            <input value={briefTitle} onChange={e=>setBriefTitle(e.target.value)} placeholder="Brief title" required/>
+            <input value={briefAudience} onChange={e=>setBriefAudience(e.target.value)} placeholder="Target audience"/>
+            <input value={briefObjective} onChange={e=>setBriefObjective(e.target.value)} placeholder="Communication objective"/>
+            <textarea value={briefQuestion} onChange={e=>setBriefQuestion(e.target.value)} placeholder="Research question / what must be established?" rows={2}/>
+            <select value={briefGate} onChange={e=>setBriefGate(e.target.value)}><option value="not_started">Not started</option><option value="researching">Researching</option><option value="evidence_checked">Evidence checked</option><option value="needs_review">Needs review</option><option value="approved_for_production">Approved for production</option></select>
+            <button disabled={saving}>Save brief</button>
+          </form>
+        </div>
+        <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Production brief</th><th>Division</th><th>Evidence gate</th><th>Review</th></tr></thead><tbody>{researchBriefs.map(b=><tr key={b.id}><td><b>{b.title}</b><small>{b.audience || 'Audience not set'} · {b.research_question || 'Research question not set'}</small></td><td>{BRAND_OPTIONS.find(x=>x.key===b.brand_key)?.label || b.brand_key}</td><td><span className="os-chip">{b.evidence_gate}</span></td><td>{b.review_status}</td></tr>)}</tbody></table>{!researchBriefs.length && <Empty text="No research briefs yet. Create the first brief above."/>}</div>
+        <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Evidence claim</th><th>Source</th><th>Status</th><th>Pinpoint</th></tr></thead><tbody>{researchClaims.map(cl=><tr key={cl.id}><td>{cl.claim_text}</td><td>{researchSources.find(s=>s.id===cl.source_id)?.title || 'Source record'}</td><td><span className="os-chip">{cl.evidence_status}</span></td><td>{cl.exact_reference || '—'}</td></tr>)}</tbody></table>{!researchClaims.length && <Empty text="No claims registered yet."/>}</div>
+      </div>
     </>}
     <form className="os-form-grid os-extended-form" onSubmit={save}>
       <input value={name} onChange={e=>setName(e.target.value)} placeholder={active === 'Projects' ? 'Project name' : active === 'Business development' ? 'Opportunity title' : active === 'Finance' ? 'Transaction description' : 'Content title / topic'} required/>
