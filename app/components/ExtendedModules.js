@@ -35,6 +35,23 @@ const PILLARS = {
 
 export default function ExtendedModules({ active, org, supabase }) {
   const [rows, setRows] = useState([]);
+  const [researchSources, setResearchSources] = useState([]);
+  const [researchClaims, setResearchClaims] = useState([]);
+  const [researchBriefs, setResearchBriefs] = useState([]);
+  const [sourceTitle, setSourceTitle] = useState('');
+  const [sourceUrl, setSourceUrl] = useState('');
+  const [sourcePublisher, setSourcePublisher] = useState('');
+  const [sourceType, setSourceType] = useState('primary_law');
+  const [sourceReference, setSourceReference] = useState('');
+  const [claimSourceId, setClaimSourceId] = useState('');
+  const [claimText, setClaimText] = useState('');
+  const [claimReference, setClaimReference] = useState('');
+  const [claimStatus, setClaimStatus] = useState('unverified');
+  const [briefTitle, setBriefTitle] = useState('');
+  const [briefQuestion, setBriefQuestion] = useState('');
+  const [briefAudience, setBriefAudience] = useState('');
+  const [briefObjective, setBriefObjective] = useState('');
+  const [briefGate, setBriefGate] = useState('researching');
   const [ventures, setVentures] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -78,14 +95,20 @@ export default function ExtendedModules({ active, org, supabase }) {
     if (!org || !config) return;
     setLoading(true); setError('');
     if (active === 'Content studio') {
-      const [contentResult, ventureResult] = await Promise.all([
+      const [contentResult, ventureResult, sourceResult, claimResult, briefResult] = await Promise.all([
         supabase.from('content_items').select(config.select).eq('organization_id', org.id).order('created_at', { ascending: false }).limit(250),
         supabase.from('ventures').select('id,name,slug').eq('organization_id', org.id).order('name'),
+        supabase.from('research_sources').select('id,title,publisher,source_url,source_type,brand_key,exact_reference,accessed_at').eq('organization_id', org.id).order('accessed_at', { ascending: false }).limit(100),
+        supabase.from('research_claims').select('id,source_id,claim_text,evidence_status,exact_reference').eq('organization_id', org.id).order('created_at', { ascending: false }).limit(100),
+        supabase.from('research_briefs').select('id,title,brand_key,audience,research_question,evidence_gate,review_status,updated_at').eq('organization_id', org.id).order('updated_at', { ascending: false }).limit(100),
       ]);
       if (contentResult.error) setError(contentResult.error.message);
       else setRows(contentResult.data || []);
       if (ventureResult.error) setError(ventureResult.error.message);
       else setVentures(ventureResult.data || []);
+      if (sourceResult.error) setError(sourceResult.error.message); else setResearchSources(sourceResult.data || []);
+      if (claimResult.error) setError(claimResult.error.message); else setResearchClaims(claimResult.data || []);
+      if (briefResult.error) setError(briefResult.error.message); else setResearchBriefs(briefResult.data || []);
     } else {
       const { data, error: queryError } = await supabase.from(config.table).select(config.select).eq('organization_id', org.id).order(config.order, { ascending: false, nullsFirst: false }).limit(100);
       if (queryError) setError(queryError.message);
