@@ -18,8 +18,13 @@ export async function middleware(request) {
     },
   });
 
-  const { data: { claims } } = await supabase.auth.getClaims();
-  const signedIn = Boolean(claims?.sub);
+  let signedIn = false;
+  try {
+    const { data } = await supabase.auth.getClaims();
+    signedIn = Boolean(data?.claims?.sub);
+  } catch {
+    signedIn = false;
+  }
   const path = request.nextUrl.pathname;
 
   if (!signedIn && path !== '/login' && path !== '/auth/callback' && path !== '/access-pending' && path !== '/setup-required') {
