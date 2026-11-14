@@ -249,6 +249,35 @@ worker.tool("updateTask", {
     if (task !== undefined) {
       const cleanTask = task.trim();
       if (!cleanTask) throw new Error("Task title cannot be empty or whitespace.");
+
+      const targetModule = module ?? existing.properties?.Module?.select?.name;
+      if (!targetModule) {
+        throw new Error("Cannot validate a renamed task because its current module is missing.");
+      }
+
+      // Prevent a rename or module move from introducing a duplicate task.
+      let cursor: string | undefined;
+      let duplicate: any;
+      do {
+        const page = await notion.databases.query({
+          database_id: TASKS_DATABASE_ID,
+          page_size: 100,
+          ...(cursor ? { start_cursor: cursor } : {}),
+          filter: { property: "Module", select: { equals: targetModule } },
+        });
+        duplicate = page.results.find((candidate: any) => {
+          if (candidate.id === pageId) return false;
+          const current = normalizeTask(candidate);
+          return current.task.trim().toLocaleLowerCase() === cleanTask.toLocaleLowerCase()
+            && current.module === targetModule;
+        });
+        cursor = page.has_more ? page.next_cursor ?? undefined : undefined;
+      } while (!duplicate && cursor);
+
+      if (duplicate) {
+        throw new Error("Another task with this title already exists in the selected module.");
+      }
+
       properties.Task = titleProperty(cleanTask);
     }
     if (status !== undefined) properties.Status = { status: { name: status } };
