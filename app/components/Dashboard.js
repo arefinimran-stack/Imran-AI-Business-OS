@@ -36,6 +36,7 @@ export default function Dashboard() {
   const [matterType, setMatterType] = useState('');
   const [matterCourt, setMatterCourt] = useState('');
   const [matterPriority, setMatterPriority] = useState('normal');
+  const [matterHearing, setMatterHearing] = useState('');
 
   const supabase = useMemo(() => createClient(), []);
 
@@ -98,11 +99,18 @@ export default function Dashboard() {
     const { error: insertError } = await supabase.from('legal_matters').insert({
       organization_id: org.id, reference_code: code, title: matterTitle.trim(),
       matter_type: matterType.trim() || null, court_or_forum: matterCourt.trim() || null,
-      priority: matterPriority, status: 'open', confidential: true,
+      priority: matterPriority, status: 'open', confidential: true, next_hearing_at: matterHearing ? new Date(matterHearing + 'T09:00:00').toISOString() : null,
     });
     setSaving(false);
     if (insertError) { setError(insertError.message); return; }
-    setMatterTitle(''); setMatterType(''); setMatterCourt(''); setNotice('Confidential legal matter created.'); await load();
+    setMatterTitle(''); setMatterType(''); setMatterCourt(''); setMatterHearing(''); setNotice('Confidential legal matter created.'); await load();
+  }
+
+  async function changeMatter(matter, patch) {
+    const { error: updateError } = await supabase.from('legal_matters').update(patch).eq('id', matter.id).eq('organization_id', org.id);
+    if (updateError) { setError(updateError.message); return; }
+    setMatters(items => items.map(item => item.id === matter.id ? { ...item, ...patch } : item));
+    setNotice('Matter record updated.');
   }
 
   async function signOut() { await supabase.auth.signOut(); window.location.assign('/login'); }
@@ -152,8 +160,8 @@ export default function Dashboard() {
             <form className="os-inline-form" onSubmit={addTask}><input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="Add a task or next action…" required/><select value={taskPriority} onChange={e => setTaskPriority(e.target.value)}><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option><option value="low">Low</option></select><button disabled={saving}>{saving ? 'Saving…' : 'Add task'}</button></form>
             <TaskList tasks={tasks} onStatus={changeTaskStatus}/></section>}
           {active === 'Legal matters' && <section className="os-panel"><PanelTitle title="Legal matters" sub="Restricted legal workspace. Matters are confidential by default." count={openMatters.length + ' open'} />
-            <form className="os-form-grid" onSubmit={addMatter}><input value={matterTitle} onChange={e => setMatterTitle(e.target.value)} placeholder="Matter title / short description" required/><input value={matterType} onChange={e => setMatterType(e.target.value)} placeholder="Matter type (e.g. Civil, Criminal, Company)"/><input value={matterCourt} onChange={e => setMatterCourt(e.target.value)} placeholder="Court / forum"/><select value={matterPriority} onChange={e => setMatterPriority(e.target.value)}><option value="normal">Normal priority</option><option value="high">High priority</option><option value="urgent">Urgent priority</option><option value="low">Low priority</option></select><button disabled={saving}>{saving ? 'Saving…' : 'Create confidential matter'}</button></form>
-            <MatterList matters={matters}/></section>}
+            <form className="os-form-grid" onSubmit={addMatter}><input value={matterTitle} onChange={e => setMatterTitle(e.target.value)} placeholder="Matter title / short description" required/><input value={matterType} onChange={e => setMatterType(e.target.value)} placeholder="Matter type (e.g. Civil, Criminal, Company)"/><input value={matterCourt} onChange={e => setMatterCourt(e.target.value)} placeholder="Court / forum"/><select value={matterPriority} onChange={e => setMatterPriority(e.target.value)}><option value="normal">Normal priority</option><option value="high">High priority</option><option value="urgent">Urgent priority</option><option value="low">Low priority</option></select><input type="date" value={matterHearing} onChange={e => setMatterHearing(e.target.value)} aria-label="Next hearing date (optional)"/><button disabled={saving}>{saving ? 'Saving…' : 'Create confidential matter'}</button></form>
+            <MatterList matters={matters} onUpdate={changeMatter}/></section>}
           {active === 'Contacts' && <section className="os-panel"><PanelTitle title="Contacts & relationships" sub="Client, prospect, partner and professional relationship register." count={contacts.length + ' records'} />
             <form className="os-form-grid contact-form" onSubmit={addContact}><input value={contactName} onChange={e => setContactName(e.target.value)} placeholder="Full name" required/><input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="Email address"/><input value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="Phone number"/><select value={contactType} onChange={e => setContactType(e.target.value)}><option value="prospect">Prospect</option><option value="client">Client</option><option value="partner">Partner</option><option value="vendor">Vendor</option><option value="investor">Investor</option><option value="other">Other</option></select><button disabled={saving}>{saving ? 'Saving…' : 'Add contact'}</button></form>
             <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Name</th><th>Organisation</th><th>Type</th><th>Email / Phone</th></tr></thead><tbody>{contacts.map(c=><tr key={c.id}><td><b>{c.full_name}</b></td><td>{c.organization_name || '—'}</td><td><span className="os-chip">{c.contact_type}</span></td><td>{c.email || '—'}<small>{c.phone || ''}</small></td></tr>)}</tbody></table>{!contacts.length && <Empty text="No contacts yet. Add the first relationship above."/>}</div></section>}
@@ -173,9 +181,9 @@ function TaskList({ tasks, onStatus }) {
   if (!tasks.length) return <Empty text="No tasks in this workspace yet. Add a task above to get started." />;
   return <div className="os-task-list">{tasks.map(t=><article className="os-task-row" key={t.id}><div className="os-task-main"><b>{t.title}</b><small>{t.description || 'No additional details'}</small></div><span className={'os-priority ' + t.priority}>{priorityLabel(t.priority)}</span><small className="os-due">{dateLabel(t.due_at)}</small><select value={t.status} onChange={e => onStatus(t, e.target.value)} aria-label={'Status for ' + t.title}><option value="todo">To do</option><option value="in_progress">In progress</option><option value="blocked">Blocked</option><option value="done">Done</option><option value="cancelled">Cancelled</option></select></article>)}</div>;
 }
-function MatterList({ matters }) {
+function MatterList({ matters, onUpdate }) {
   if (!matters.length) return <Empty text="No legal matters registered. New matters are marked confidential by default." />;
-  return <div className="os-matter-list">{matters.map(m=><article className="os-matter-row" key={m.id}><div><b>{m.title}</b><small>{m.reference_code} · {m.matter_type || 'Matter type not set'} · {m.court_or_forum || 'Forum not set'}</small></div><span className={'os-priority ' + m.priority}>{priorityLabel(m.priority)}</span><span className="os-chip">{statusLabel(m.status)}</span><small>Next date: {dateLabel(m.next_hearing_at)}</small><span className="os-confidential">Confidential</span></article>)}</div>;
+  return <div className="os-matter-list">{matters.map(m=><article className="os-matter-row" key={m.id}><div><b>{m.title}</b><small>{m.reference_code} · {m.matter_type || 'Matter type not set'} · {m.court_or_forum || 'Forum not set'}</small></div><span className={'os-priority ' + m.priority}>{priorityLabel(m.priority)}</span><select value={m.status} onChange={e => onUpdate(m, { status: e.target.value })} aria-label={"Status for " + m.reference_code}><option value="open">Open</option><option value="pending">Pending</option><option value="on_hold">On hold</option><option value="closed">Closed</option><option value="archived">Archived</option></select><label className="os-hearing-edit">Next date <input type="date" value={m.next_hearing_at ? new Date(m.next_hearing_at).toISOString().slice(0,10) : ""} onChange={e => onUpdate(m, { next_hearing_at: e.target.value ? new Date(e.target.value + "T09:00:00").toISOString() : null })}/></label><span className="os-confidential">Confidential</span></article>)}</div>;
 }
 function Overview({ tasks, openTasks, overdue, ventures, contacts, openMatters, setActive }) {
   const metrics = [['OPEN TASKS', String(openTasks.length).padStart(2,'0'), 'Work requiring action'], ['LEGAL MATTERS', String(openMatters.length).padStart(2,'0'), 'Open and pending matters'], ['RELATIONSHIPS', String(contacts.length).padStart(2,'0'), 'Contacts and leads'], ['VENTURES', String(ventures.length).padStart(2,'0'), 'Registered business units']];
