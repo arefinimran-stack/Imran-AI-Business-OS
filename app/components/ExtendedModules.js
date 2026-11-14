@@ -64,14 +64,14 @@ export default function ExtendedModules({ active, org, supabase }) {
   if (!config) return null;
   const title = active === 'Projects' ? 'Projects & delivery' : active === 'Business development' ? 'Business development pipeline' : active === 'Finance' ? 'Finance register' : 'Content studio';
   const sub = active === 'Projects' ? 'Objectives, milestones and execution status.' : active === 'Business development' ? 'Opportunities, proposals and follow-up.' : active === 'Finance' ? 'Income and expense records. Only verified figures belong here.' : 'Plan, prepare and track publishing across your channels.';
-  const income = rows.filter(r => r.entry_type === 'income' && r.status !== 'void').reduce((s,r)=>s+Number(r.amount||0),0);
-  const expense = rows.filter(r => r.entry_type === 'expense' && r.status !== 'void').reduce((s,r)=>s+Number(r.amount||0),0);
+  const income = rows.filter(r => r.entry_type === 'income' && r.status !== 'void' && r.currency === currency).reduce((s,r)=>s+Number(r.amount||0),0);
+  const expense = rows.filter(r => r.entry_type === 'expense' && r.status !== 'void' && r.currency === currency).reduce((s,r)=>s+Number(r.amount||0),0);
 
   return <section className="os-panel">
     <div className="os-panel-head"><div><h2>{title}</h2><p>{sub}</p></div><span className="os-count">{rows.length} records</span></div>
     {error && <div className="os-alert error">{error}</div>}
     {notice && <div className="os-alert success">{notice}</div>}
-    {active === 'Finance' && <div className="os-finance-summary"><article><small>RECORDED INCOME</small><b>{money(income,currency)}</b></article><article><small>RECORDED EXPENSE</small><b>{money(expense,currency)}</b></article><article><small>NET (MIXED CURRENCIES NOT CONVERTED)</small><b>{money(income-expense,currency)}</b></article></div>}
+    {active === 'Finance' && <div className="os-finance-summary"><article><small>RECORDED INCOME · {currency}</small><b>{money(income,currency)}</b></article><article><small>RECORDED EXPENSE · {currency}</small><b>{money(expense,currency)}</b></article><article><small>NET · {currency} ONLY</small><b>{money(income-expense,currency)}</b></article></div>}
     <form className="os-form-grid os-extended-form" onSubmit={save}>
       <input value={name} onChange={e=>setName(e.target.value)} placeholder={active === 'Projects' ? 'Project name' : active === 'Business development' ? 'Opportunity title' : active === 'Finance' ? 'Transaction description' : 'Content title / topic'} required/>
       {active === 'Projects' && <select value={priority} onChange={e=>setPriority(e.target.value)}><option value="normal">Normal priority</option><option value="high">High priority</option><option value="urgent">Urgent priority</option><option value="low">Low priority</option></select>}
