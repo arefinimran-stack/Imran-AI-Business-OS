@@ -54,7 +54,7 @@ The CLI creates the Worker on first deploy and writes its local `workers.json` i
 After deployment, verify the read path:
 
 ```bash
-ntn workers exec getTasks -d '{"pageSize":100}'
+ntn workers exec getTasks -d '{"status":null,"module":null,"priority":null,"pageSize":100,"startCursor":null}'
 ```
 
 Expected verification: all 22 current task rows are returned (subject to the live database not having changed since the last inspection). Follow `nextCursor` if `hasMore` is true.
@@ -63,6 +63,18 @@ Then test one task lookup using a returned `pageId`:
 
 ```bash
 ntn workers exec getTask -d '{"pageId":"<PAGE_ID_FROM_GET_TASKS>"}'
+```
+
+The schema builder marks every object field as required. For optional fields, pass `null` explicitly. Example duplicate-safe create test (use an existing task title and module):
+
+```bash
+ntn workers exec createTask -d '{"task":"<EXISTING_TASK_TITLE>","module":"General","priority":"P2","deadline":null,"notes":null,"accountableAI":null,"recommendedAction":null,"trigger":null}'
+```
+
+Example no-op-safe update shape (replace the page ID; set one field to a new value):
+
+```bash
+ntn workers exec updateTask -d '{"pageId":"<PAGE_ID_FROM_GET_TASKS>","task":null,"status":null,"module":null,"priority":null,"deadline":null,"clearDeadline":false,"notes":null,"accountableAI":null,"recommendedAction":null,"trigger":null}'
 ```
 
 ## Connect to the Custom Agent
