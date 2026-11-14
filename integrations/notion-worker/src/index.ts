@@ -1,4 +1,5 @@
 import { Worker } from "@notionhq/workers";
+import { j } from "@notionhq/workers/schema-builder";
 
 const worker = new Worker();
 export default worker;
@@ -6,10 +7,10 @@ export default worker;
 /**
  * IMRAN AI Task Worker
  *
- * The existing Notion Central Tasks & Activity Log database remains authoritative.
- * This worker uses the Notion API client; it intentionally does not declare a
- * managed/attached sync database, because syncing the task register would take
- * ownership away from the existing Notion workflow.
+ * Notion remains the source of truth. This worker reads and writes the existing
+ * Central Tasks & Activity Log through the authenticated Notion API client.
+ * It deliberately declares no sync database: the task register is not an
+ * external mirror and must not be placed under sync ownership.
  */
 const TASKS_DATABASE_ID = "b47cbe02-8fc6-4f24-ac8e-ea932d801a78";
 const TASKS_DATA_SOURCE_ID = "66277fb7-83a8-456e-9097-669a8e50458d";
@@ -21,6 +22,10 @@ const STATUSES = ["To Do", "In Progress", "Waiting Approval", "Done"] as const;
 type TaskPage = {
   id: string;
   url?: string;
+  parent?: {
+    database_id?: string;
+    data_source_id?: string;
+  };
   properties?: Record<string, any>;
 };
 
@@ -32,19 +37,14 @@ function richTextValue(value: any): string {
 function normalizeTask(page: TaskPage) {
   const properties = page.properties ?? {};
   const title = properties.Task?.title ?? [];
-  const status = properties.Status?.status?.name ?? properties.Status?.select?.name ?? null;
-  const priority = properties.Priority?.select?.name ?? null;
-  const module = properties.Module?.select?.name ?? null;
-  const deadline = properties.Deadline?.date?.start ?? null;
-
   return {
     pageId: page.id,
     url: page.url ?? null,
     task: richTextValue(title),
-    status,
-    priority,
-    module,
-    deadline,
+    status: properties.Status?.status?.name ?? properties.Status?.select?.name ?? null,
+    priority: properties.Priority?.select?.name ?? null,
+    module: properties.Module?.select?.name ?? null,
+    deadline: properties.Deadline?.date?.start ?? null,
     accountableAI: richTextValue(properties["Accountable AI"]?.rich_text),
     notes: richTextValue(properties.Notes?.rich_text),
     recommendedAction: richTextValue(properties["Recommended Action"]?.rich_text),
@@ -60,31 +60,73 @@ function titleProperty(value: string) {
   return { title: [{ type: "text", text: { content: value } }] };
 }
 
+function assertTaskDatabase(page: TaskPage): void {
+  const parent = page.parent ?? {};
+  if (
+    parent.database_id !== TASKS_DATABASE_ID
+    && parent.data_source_id !== TASKS_DATA_SOURCE_ID
+  ) {
+    throw new Error("The supplied page is not in the IMRAN AI Central Tasks & Activity Log.");
+  }
+}
+
+async function findDuplicateTask(
+  notion: any,
+  taskName: string,
+  module: string,
+  excludePageId?: string,
+): Promise<TaskPage | undefined> {
+  const normalizedName = taskName.trim().toLocaleLowerCase();
+  let cursor: string | undefined;
+
+  do {
+    const response = await notion.dataSources.query({
+      data_source_id: TASKS_DATA_SOURCE_ID,
+      page_size: 100,
+      ...(cursor ? { start_cursor: cursor } : {}),
+      filter: { property: "Module", select: { equals: module } },
+    });
+
+    const duplicate = response.results.find((candidate: any) => {
+      if (candidate.id === excludePageId) return false;
+      const current = normalizeTask(candidate);
+      return current.task.trim().toLocaleLowerCase() === normalizedName
+        && current.module === module;
+    });
+
+    if (duplicate) return duplicate as TaskPage;
+    cursor = response.has_more ? response.next_cursor ?? undefined : undefined;
+  } while (cursor);
+
+  return undefined;
+}
+
 worker.tool("getTasks", {
   title: "Get IMRAN AI Tasks",
   description:
-    "Read tasks from the authoritative Central Tasks & Activity Log. Supports optional status, module and priority filters. Use the returned pageId for later updates.",
-  schema: {
-    type: "object",
-    properties: {
-      status: { type: "string", enum: [...STATUSES] },
-      module: { type: "string", enum: [...MODULES] },
-      priority: { type: "string", enum: [...PRIORITIES] },
-      pageSize: { type: "integer", minimum: 1, maximum: 100, default: 50 },
-      startCursor: { type: "string" },
-    },
-    additionalProperties: false,
-  },
+    "Read tasks from the authoritative Central Tasks & Activity Log. Use optional filters and pagination to retrieve current task records.",
+  schema: j.object({
+    status: j.enum(...STATUSES).nullable().describe("Filter by task status, or null for all statuses."),
+    module: j.enum(...MODULES).nullable().describe("Filter by business module, or null for all modules."),
+    priority: j.enum(...PRIORITIES).nullable().describe("Filter by priority, or null for all priorities."),
+    pageSize: j.integer().nullable().describe("Page size from 1 to 100; null uses 50."),
+    startCursor: j.string().nullable().describe("Pagination cursor from the previous response, or null for the first page."),
+  }),
   hints: { readOnlyHint: true },
-  execute: async ({ status, module, priority, pageSize = 50, startCursor }, { notion }) => {
+  execute: async ({ status, module, priority, pageSize, startCursor }, { notion }) => {
+    const limit = pageSize ?? 50;
+    if (limit < 1 || limit > 100) {
+      throw new Error("pageSize must be between 1 and 100.");
+    }
+
     const filters: any[] = [];
     if (status) filters.push({ property: "Status", status: { equals: status } });
     if (module) filters.push({ property: "Module", select: { equals: module } });
     if (priority) filters.push({ property: "Priority", select: { equals: priority } });
 
-    const response = await notion.databases.query({
-      database_id: TASKS_DATABASE_ID,
-      page_size: pageSize,
+    const response = await notion.dataSources.query({
+      data_source_id: TASKS_DATA_SOURCE_ID,
+      page_size: limit,
       ...(startCursor ? { start_cursor: startCursor } : {}),
       ...(filters.length === 1
         ? { filter: filters[0] }
@@ -105,23 +147,13 @@ worker.tool("getTasks", {
 worker.tool("getTask", {
   title: "Get IMRAN AI Task",
   description: "Retrieve one task by its Notion page ID from the authoritative task database.",
-  schema: {
-    type: "object",
-    properties: {
-      pageId: { type: "string", minLength: 32 },
-    },
-    required: ["pageId"],
-    additionalProperties: false,
-  },
+  schema: j.object({
+    pageId: j.string().describe("Notion page ID returned by Get IMRAN AI Tasks."),
+  }),
   hints: { readOnlyHint: true },
   execute: async ({ pageId }, { notion }) => {
     const page = await notion.pages.retrieve({ page_id: pageId }) as any;
-    const parent = page.parent ?? {};
-    const belongsToTasks = parent.database_id === TASKS_DATABASE_ID
-      || parent.data_source_id === TASKS_DATA_SOURCE_ID;
-    if (!belongsToTasks) {
-      throw new Error("The supplied page is not in the IMRAN AI Central Tasks & Activity Log.");
-    }
+    assertTaskDatabase(page);
     return normalizeTask(page);
   },
 });
@@ -129,61 +161,31 @@ worker.tool("getTask", {
 worker.tool("createTask", {
   title: "Create IMRAN AI Task",
   description:
-    "Create a task in the authoritative Central Tasks & Activity Log. Checks for an existing exact task title and module first; returns the existing record instead of creating a duplicate.",
-  schema: {
-    type: "object",
-    properties: {
-      task: { type: "string", minLength: 1, maxLength: 200 },
-      module: { type: "string", enum: [...MODULES] },
-      priority: { type: "string", enum: [...PRIORITIES] },
-      deadline: { type: "string", format: "date" },
-      notes: { type: "string", maxLength: 1800 },
-      accountableAI: { type: "string", maxLength: 500 },
-      recommendedAction: { type: "string", maxLength: 1800 },
-      trigger: { type: "string", maxLength: 500 },
-    },
-    required: ["task", "module", "priority"],
-    additionalProperties: false,
-  },
+    "Create a task in the authoritative Central Tasks & Activity Log. Checks all pages in the selected module for a case-insensitive title duplicate before creating.",
+  schema: j.object({
+    task: j.string().describe("Task title; leading and trailing whitespace is removed."),
+    module: j.enum(...MODULES).describe("Business module for this task."),
+    priority: j.enum(...PRIORITIES).describe("Task priority."),
+    deadline: j.date().nullable().describe("Optional deadline in YYYY-MM-DD format, or null."),
+    notes: j.string().nullable().describe("Optional task notes, or null."),
+    accountableAI: j.string().nullable().describe("Optional accountable AI/owner label, or null."),
+    recommendedAction: j.string().nullable().describe("Optional recommended next action, or null."),
+    trigger: j.string().nullable().describe("Optional trigger or review cadence, or null."),
+  }),
   execute: async (
     { task, module, priority, deadline, notes, accountableAI, recommendedAction, trigger },
     { notion },
   ) => {
     const cleanTask = task.trim();
-    if (!cleanTask) {
-      throw new Error("Task title cannot be empty or whitespace.");
-    }
+    if (!cleanTask) throw new Error("Task title cannot be empty or whitespace.");
 
-    // Scan the selected module rather than relying on a case-sensitive title
-    // filter. The current register is small, and this catches case/spacing
-    // variants before creating another row.
-    let duplicateCursor: string | undefined;
-    let duplicate: any;
-    do {
-      const duplicateCheck = await notion.databases.query({
-        database_id: TASKS_DATABASE_ID,
-        page_size: 100,
-        ...(duplicateCursor ? { start_cursor: duplicateCursor } : {}),
-        filter: { property: "Module", select: { equals: module } },
-      });
-
-      duplicate = duplicateCheck.results.find((page: any) => {
-        const existing = normalizeTask(page);
-        return existing.task.trim().toLocaleLowerCase() === cleanTask.toLocaleLowerCase()
-          && existing.module === module;
-      });
-
-      duplicateCursor = duplicateCheck.has_more
-        ? duplicateCheck.next_cursor ?? undefined
-        : undefined;
-    } while (!duplicate && duplicateCursor);
-
+    const duplicate = await findDuplicateTask(notion, cleanTask, module);
     if (duplicate) {
       return {
         created: false,
         duplicatePrevented: true,
-        message: "An exact task with this title and module already exists.",
-        task: normalizeTask(duplicate as any),
+        message: "An existing task with this title and module was found; no new page was created.",
+        task: normalizeTask(duplicate),
       };
     }
 
@@ -200,13 +202,14 @@ worker.tool("createTask", {
     if (trigger) properties.Trigger = richTextProperty(trigger);
 
     const page = await notion.pages.create({
-      parent: { database_id: TASKS_DATABASE_ID },
+      parent: { data_source_id: TASKS_DATA_SOURCE_ID },
       properties,
     }) as any;
 
     return {
       created: true,
       duplicatePrevented: false,
+      message: "Task created successfully.",
       task: normalizeTask(page),
     };
   },
@@ -215,83 +218,56 @@ worker.tool("createTask", {
 worker.tool("updateTask", {
   title: "Update IMRAN AI Task",
   description:
-    "Update selected fields on an existing task. Requires the exact Notion pageId returned by Get IMRAN AI Tasks; cannot update pages outside the authoritative task database.",
-  schema: {
-    type: "object",
-    properties: {
-      pageId: { type: "string", minLength: 32 },
-      task: { type: "string", minLength: 1, maxLength: 200 },
-      status: { type: "string", enum: [...STATUSES] },
-      module: { type: "string", enum: [...MODULES] },
-      priority: { type: "string", enum: [...PRIORITIES] },
-      deadline: { type: ["string", "null"], format: "date" },
-      notes: { type: "string", maxLength: 1800 },
-      accountableAI: { type: "string", maxLength: 500 },
-      recommendedAction: { type: "string", maxLength: 1800 },
-      trigger: { type: "string", maxLength: 500 },
-    },
-    required: ["pageId"],
-    additionalProperties: false,
-  },
+    "Update selected fields on an existing task. Requires a pageId from the authoritative task database. Prevents duplicate titles when renaming or moving a task between modules.",
+  schema: j.object({
+    pageId: j.string().describe("Notion page ID returned by Get IMRAN AI Tasks."),
+    task: j.string().nullable().describe("New task title, or null to leave unchanged."),
+    status: j.enum(...STATUSES).nullable().describe("New status, or null to leave unchanged."),
+    module: j.enum(...MODULES).nullable().describe("New module, or null to leave unchanged."),
+    priority: j.enum(...PRIORITIES).nullable().describe("New priority, or null to leave unchanged."),
+    deadline: j.date().nullable().describe("New YYYY-MM-DD deadline, or null to leave unchanged."),
+    clearDeadline: j.boolean().describe("Set true to remove the existing deadline; otherwise false."),
+    notes: j.string().nullable().describe("Replace notes, empty string clears them, null leaves unchanged."),
+    accountableAI: j.string().nullable().describe("Replace accountable AI label, empty string clears it, null leaves unchanged."),
+    recommendedAction: j.string().nullable().describe("Replace recommended action, empty string clears it, null leaves unchanged."),
+    trigger: j.string().nullable().describe("Replace trigger, empty string clears it, null leaves unchanged."),
+  }),
   execute: async (
-    { pageId, task, status, module, priority, deadline, notes, accountableAI, recommendedAction, trigger },
+    { pageId, task, status, module, priority, deadline, clearDeadline, notes, accountableAI, recommendedAction, trigger },
     { notion },
   ) => {
-    const existing = await notion.pages.retrieve({ page_id: pageId }) as any;
-    const parent = existing.parent ?? {};
-    const belongsToTasks = parent.database_id === TASKS_DATABASE_ID
-      || parent.data_source_id === TASKS_DATA_SOURCE_ID;
-    if (!belongsToTasks) {
-      throw new Error("The supplied page is not in the IMRAN AI Central Tasks & Activity Log.");
+    if (clearDeadline && deadline) {
+      throw new Error("Provide either a new deadline or clearDeadline=true, not both.");
     }
 
+    const existing = await notion.pages.retrieve({ page_id: pageId }) as any;
+    assertTaskDatabase(existing);
+
     const properties: Record<string, any> = {};
-    if (task !== undefined || module !== undefined) {
+    if (task !== null || module !== null) {
       const cleanTask = (task ?? normalizeTask(existing).task).trim();
       if (!cleanTask) throw new Error("Task title cannot be empty or whitespace.");
 
       const targetModule = module ?? existing.properties?.Module?.select?.name;
-      if (!targetModule) {
-        throw new Error("Cannot validate this task change because its module is missing.");
-      }
+      if (!targetModule) throw new Error("Cannot validate this task change because its module is missing.");
 
-      // Prevent a rename or module move from introducing a duplicate task.
-      let cursor: string | undefined;
-      let duplicate: any;
-      do {
-        const page = await notion.databases.query({
-          database_id: TASKS_DATABASE_ID,
-          page_size: 100,
-          ...(cursor ? { start_cursor: cursor } : {}),
-          filter: { property: "Module", select: { equals: targetModule } },
-        });
-        duplicate = page.results.find((candidate: any) => {
-          if (candidate.id === pageId) return false;
-          const current = normalizeTask(candidate);
-          return current.task.trim().toLocaleLowerCase() === cleanTask.toLocaleLowerCase()
-            && current.module === targetModule;
-        });
-        cursor = page.has_more ? page.next_cursor ?? undefined : undefined;
-      } while (!duplicate && cursor);
-
+      const duplicate = await findDuplicateTask(notion, cleanTask, targetModule, pageId);
       if (duplicate) {
         throw new Error("Another task with this title already exists in the selected module.");
       }
 
-      if (task !== undefined) properties.Task = titleProperty(cleanTask);
+      if (task !== null) properties.Task = titleProperty(cleanTask);
+      if (module !== null) properties.Module = { select: { name: module } };
     }
-    if (status !== undefined) properties.Status = { status: { name: status } };
-    if (module !== undefined) properties.Module = { select: { name: module } };
-    if (priority !== undefined) properties.Priority = { select: { name: priority } };
-    if (deadline !== undefined) properties.Deadline = deadline
-      ? { date: { start: deadline } }
-      : { date: null };
-    if (notes !== undefined) properties.Notes = richTextProperty(notes);
-    if (accountableAI !== undefined) properties["Accountable AI"] = richTextProperty(accountableAI);
-    if (recommendedAction !== undefined) {
-      properties["Recommended Action"] = richTextProperty(recommendedAction);
-    }
-    if (trigger !== undefined) properties.Trigger = richTextProperty(trigger);
+
+    if (status !== null) properties.Status = { status: { name: status } };
+    if (priority !== null) properties.Priority = { select: { name: priority } };
+    if (clearDeadline) properties.Deadline = { date: null };
+    else if (deadline !== null) properties.Deadline = { date: { start: deadline } };
+    if (notes !== null) properties.Notes = richTextProperty(notes);
+    if (accountableAI !== null) properties["Accountable AI"] = richTextProperty(accountableAI);
+    if (recommendedAction !== null) properties["Recommended Action"] = richTextProperty(recommendedAction);
+    if (trigger !== null) properties.Trigger = richTextProperty(trigger);
 
     if (Object.keys(properties).length === 0) {
       throw new Error("Provide at least one field to update.");
