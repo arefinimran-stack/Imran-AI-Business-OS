@@ -1,16 +1,17 @@
 # IMRAN AI Notion Worker — task operations
 
-This directory contains the Worker source for controlled operations against the existing Notion **Central Tasks & Activity Log**.
+Standalone Notion Worker project for controlled operations against the existing **Central Tasks & Activity Log**.
 
-## Source-of-truth rules
+## Source-of-truth and safety rules
 
 - Notion remains authoritative.
-- The existing database contains 22 task records and is not recreated.
-- This worker does **not** declare a managed or attached sync database.
-- Do not attach the production task database to a sync or run replace mode against it.
-- The worker uses the existing Notion database ID: `b47cbe02-8fc6-4f24-ac8e-ea932d801a78`.
-- Existing task pages are addressed by their Notion page IDs. No new Task ID column is required for updates.
-- `createTask` checks exact task title + module before creating. This is a practical duplicate guard, not a transactional uniqueness constraint; concurrent simultaneous creates should be serialized by the calling agent.
+- The live task data source is `66277fb7-83a8-456e-9097-669a8e50458d`, under database `b47cbe02-8fc6-4f24-ac8e-ea932d801a78`.
+- The existing register was verified with 22 task records on 14 November 2026.
+- This Worker does not declare a managed/attached sync database and does not change the existing schema or rows.
+- Do not add a sync against the production task register. Replace mode can delete rows not returned by a complete upstream snapshot.
+- Existing task pages are addressed by their Notion page IDs. No new Task ID property is required.
+- No delete operation is exposed.
+- `createTask` scans the selected module and checks a normalized title before creating. This reduces duplicates but is not a transactional uniqueness constraint; serialize concurrent create requests.
 
 ## Tools
 
@@ -18,40 +19,79 @@ This directory contains the Worker source for controlled operations against the 
 |---|---|---|
 | `getTasks` | Read-only | Filter and paginate existing tasks |
 | `getTask` | Read-only | Retrieve one task by Notion page ID |
-| `createTask` | Write | Create a task after duplicate check |
-| `updateTask` | Write | Update status, priority, deadline, notes or recommended action |
+| `createTask` | Write | Create after duplicate checking |
+| `updateTask` | Write | Update title, module, status, priority, deadline and operational notes |
 
-Write tools intentionally omit `readOnlyHint`, so Notion treats them as write operations and can request confirmation in the agent flow. No delete tool is provided.
+Write tools omit `readOnlyHint`; Notion Custom Agents therefore request permission before executing them under the default policy.
 
-## Why there is no sync yet
+## Runtime and requirements
 
-A Notion Worker sync is for pulling records from an **external upstream source into a Worker-managed Notion database**. The Central Tasks register is already the authoritative source; syncing it back into another managed database would create a competing task register. A sync should be added only when a concrete external source is selected (for example, an approved CRM or issue tracker) and its ownership, identifiers and deletion semantics are defined.
+- Node.js 22+
+- npm 10+
+- Notion CLI (`ntn`)
+- A Notion workspace with Workers enabled. Notion currently documents Workers as a Business/Enterprise capability subject to workspace enablement.
+- The signed-in Notion identity must be allowed to deploy Workers and access the target database.
 
-## Install into a Notion Worker project
+## Install, validate and deploy
 
-1. Create or open the Worker project with the Notion CLI.
-2. Copy this `src/index.ts` into the Worker project's `src/index.ts`.
-3. Deploy with `ntn workers deploy`.
-4. Attach the deployed Worker to the intended Notion Custom Agent and enable the four tools.
-5. For local `ntn workers exec` testing, configure `NOTION_API_TOKEN` as a Worker secret or in the local ignored `.env` file. Do not commit or paste the token into source control.
+Run these commands from this directory:
 
-## Required verification
+```bash
+npm install
+npm run typecheck
+ntn login
+npm run deploy
+```
 
-- Run the read-only `getTasks` tool with pageSize 100.
-- Confirm 22 records are returned and compare statuses to the live Notion view.
-- Verify `getTask` with one returned pageId.
-- Test `createTask` with a deliberately duplicated title/module and confirm it returns the existing page without creating a row.
-- Test a new task only in a separately approved test database or after explicit approval.
-- Test `updateTask` on an approved non-critical record; verify the changed property in Notion.
-- Do not enable any sync against the existing task database.
+The deploy script runs:
 
-## Database schema expected by this Worker
+```bash
+ntn workers deploy --name "IMRAN AI Task Worker"
+```
 
-- `Task`: title
-- `Status`: status
-- `Priority`: select
-- `Module`: select
-- `Deadline`: date
-- `Notes`, `Accountable AI`, `Recommended Action`, `Trigger`: rich text
+The CLI creates the Worker on first deploy and writes its local `workers.json` identity/configuration file. That file is deliberately git-ignored because it is workspace-specific.
 
-The schema was inspected from the live Notion database on 14 November 2026.
+After deployment, verify the read path:
+
+```bash
+ntn workers exec getTasks -d '{"pageSize":100}'
+```
+
+Expected verification: all 22 current task rows are returned (subject to the live database not having changed since the last inspection). Follow `nextCursor` if `hasMore` is true.
+
+Then test one task lookup using a returned `pageId`:
+
+```bash
+ntn workers exec getTask -d '{"pageId":"<PAGE_ID_FROM_GET_TASKS>"}'
+```
+
+## Connect to the Custom Agent
+
+In Notion, open the intended Custom Agent's tool configuration, connect **IMRAN AI Task Worker**, and enable:
+
+1. Get IMRAN AI Tasks
+2. Get IMRAN AI Task
+3. Create IMRAN AI Task
+4. Update IMRAN AI Task
+
+The Worker's Notion API client runs with the permissions of the Custom Agent. Confirm the agent can open the Central Tasks & Activity Log database before enabling write tools.
+
+## Production acceptance tests
+
+1. `getTasks` returns exactly the live record count and valid pagination metadata.
+2. `getTask` accepts a task page ID from that result and rejects a page outside the task database.
+3. `createTask` called with an existing title/module returns the existing record and creates no row.
+4. Create one new task only in an approved test database or after explicit approval.
+5. `updateTask` changes only the requested fields on an approved test record.
+6. Confirm no existing rows, properties, or relations were lost.
+7. Inspect Worker logs after each execution.
+
+Do not treat the website's Vercel/Netlify deployment checks as Worker deployment or runtime tests. Those are separate systems.
+
+## Why no sync is declared
+
+A Worker sync imports an external upstream dataset into a Worker-managed Notion database. The Central Tasks register is already authoritative. A second synced task database would fragment operations; attaching or locking the live register is intentionally avoided. Add syncs only when a concrete external source, stable upstream key, deletion policy, and destination database have been approved.
+
+## Existing application integration
+
+The Founder Command Centre already has task API routes, but its previous backend integration returned HTTP 403 because its configured internal integration did not have access to the Central Tasks database. Worker Custom Agent execution uses the permissions of the connected Custom Agent; this does not automatically repair the separate AppDeploy backend token. Keep that permission issue tracked separately.
