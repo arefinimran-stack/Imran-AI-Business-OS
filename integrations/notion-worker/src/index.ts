@@ -246,13 +246,13 @@ worker.tool("updateTask", {
     }
 
     const properties: Record<string, any> = {};
-    if (task !== undefined) {
-      const cleanTask = task.trim();
+    if (task !== undefined || module !== undefined) {
+      const cleanTask = (task ?? normalizeTask(existing).task).trim();
       if (!cleanTask) throw new Error("Task title cannot be empty or whitespace.");
 
       const targetModule = module ?? existing.properties?.Module?.select?.name;
       if (!targetModule) {
-        throw new Error("Cannot validate a renamed task because its current module is missing.");
+        throw new Error("Cannot validate this task change because its module is missing.");
       }
 
       // Prevent a rename or module move from introducing a duplicate task.
@@ -278,7 +278,7 @@ worker.tool("updateTask", {
         throw new Error("Another task with this title already exists in the selected module.");
       }
 
-      properties.Task = titleProperty(cleanTask);
+      if (task !== undefined) properties.Task = titleProperty(cleanTask);
     }
     if (status !== undefined) properties.Status = { status: { name: status } };
     if (module !== undefined) properties.Module = { select: { name: module } };
