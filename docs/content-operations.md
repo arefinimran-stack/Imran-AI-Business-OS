@@ -87,3 +87,8 @@ Before any public post:
 - Schedule/timezone confirmed.
 - Publishing result and live permalink captured.
 - Post-publication metrics checked after a suitable interval.
+
+
+## 12. Visual identity and design governance
+
+The premium visual standard is maintained separately in [Brand Visual System](brand-visual-system.md). It defines the brand-specific palettes, Pinterest trend-reference process, composition rules, image-rights requirements and final design review checklist. Content approval must include visual review as well as factual and editorial review.
