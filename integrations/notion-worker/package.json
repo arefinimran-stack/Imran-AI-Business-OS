@@ -1,0 +1,21 @@
+{
+  "name": "imran-ai-notion-worker",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Notion Worker for IMRAN AI task operations",
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "deploy": "ntn workers deploy --name \"IMRAN AI Task Worker\"",
+    "tasks": "ntn workers exec getTasks -d '{\"pageSize\":100}'"
+  },
+  "dependencies": {
+    "@notionhq/workers": "0.9.5"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}
