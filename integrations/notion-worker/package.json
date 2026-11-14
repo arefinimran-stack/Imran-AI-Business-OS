@@ -10,7 +10,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "deploy": "ntn workers deploy --name \"IMRAN AI Task Worker\"",
-    "tasks": "ntn workers exec getTasks -d '{\"pageSize\":100}'"
+    "tasks": "ntn workers exec getTasks -d '{\"status\":null,\"module\":null,\"priority\":null,\"pageSize\":100,\"startCursor\":null}'"
   },
   "dependencies": {
     "@notionhq/workers": "0.9.5"
