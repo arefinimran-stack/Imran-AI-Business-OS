@@ -1,0 +1,3 @@
+import './globals.css';
+export const metadata={title:'Arefin Chamber | Adv. Imran Arefin',description:'Arefin Chamber, led by Adv. Imran Arefin, provides legal counsel and advocacy in Bangladesh. Corporate, commercial, constitutional, criminal and civil legal services. Contact Adv. Imran Arefin.'};
+export default function RootLayout({children}){return <html lang="en"><body>{children}</body></html>}
