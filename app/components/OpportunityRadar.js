@@ -20,6 +20,9 @@ function sourceHostname(value) {
 
 export default function OpportunityRadar({ org, supabase }) {
   const [items,setItems] = useState([]);
+  const [researchSources,setResearchSources] = useState([]);
+  const [selectedSourceIds,setSelectedSourceIds] = useState([]);
+  const [linkedSources,setLinkedSources] = useState({});
   const [loading,setLoading] = useState(true);
   const [saving,setSaving] = useState(false);
   const [error,setError] = useState('');
@@ -42,10 +45,20 @@ export default function OpportunityRadar({ org, supabase }) {
   const load = useCallback(async () => {
     if (!org?.id) return;
     setLoading(true); setError('');
-    const { data, error: queryError } = await supabase.from('opportunity_signals')
-      .select('id,brand_key,signal_type,title,summary,evidence_summary,hypothesis,source_urls,evidence_quality,confidence,commercial_potential,estimated_effort,recommended_action,status,due_at,created_at')
-      .eq('organization_id',org.id).order('created_at',{ascending:false}).limit(250);
-    if (queryError) setError(queryError.message); else setItems(data || []);
+    const [signalsResult, sourcesResult, linksResult] = await Promise.all([
+      supabase.from('opportunity_signals').select('id,brand_key,signal_type,title,summary,evidence_summary,hypothesis,source_urls,evidence_quality,confidence,commercial_potential,estimated_effort,recommended_action,status,due_at,created_at').eq('organization_id',org.id).order('created_at',{ascending:false}).limit(250),
+      supabase.from('research_sources').select('id,title,publisher,source_url,source_type,brand_key,exact_reference').eq('organization_id',org.id).order('accessed_at',{ascending:false}).limit(200),
+      supabase.from('opportunity_signal_sources').select('signal_id,source_id').eq('organization_id',org.id)
+    ]);
+    if (signalsResult.error) setError(signalsResult.error.message); else setItems(signalsResult.data || []);
+    if (sourcesResult.error) setError(sourcesResult.error.message); else setResearchSources(sourcesResult.data || []);
+    if (linksResult.error) setError(linksResult.error.message);
+    else {
+      const sourceMap = Object.fromEntries((sourcesResult.data || []).map(source => [source.id, source]));
+      const grouped = {};
+      (linksResult.data || []).forEach(link => { if (sourceMap[link.source_id]) (grouped[link.signal_id] ||= []).push(sourceMap[link.source_id]); });
+      setLinkedSources(grouped);
+    }
     setLoading(false);
   },[org?.id,supabase]);
 
@@ -58,17 +71,22 @@ export default function OpportunityRadar({ org, supabase }) {
     const sourceUrls = sources.split(/\n|,/).map(x=>x.trim()).filter(Boolean);
     const invalid = sourceUrls.find(x=>{try { const u=new URL(x); return !['http:','https:'].includes(u.protocol); } catch { return true; }});
     if (invalid) { setSaving(false); setError('Each source must be a valid http or https URL.'); return; }
-    const { error: insertError } = await supabase.from('opportunity_signals').insert({
+    const { data: inserted, error: insertError } = await supabase.from('opportunity_signals').insert({
       organization_id:org.id, brand_key:brand, signal_type:type, title:title.trim(),
       summary:summary.trim()||null, evidence_summary:evidence.trim()||null,
       hypothesis:hypothesis.trim()||null, source_urls:sourceUrls,
       evidence_quality:quality, confidence, commercial_potential:potential,
       estimated_effort:effort, recommended_action:action.trim()||null, status:'discovered'
-    });
+    }).select('id').single();
+    if (insertError) {setSaving(false);setError(insertError.message);return;}
+    if (selectedSourceIds.length) {
+      const links = selectedSourceIds.map(source_id => ({organization_id:org.id,signal_id:inserted.id,source_id}));
+      const {error: linkError} = await supabase.from('opportunity_signal_sources').insert(links);
+      if (linkError) {setSaving(false);setError('Signal saved, but research-source links need attention: '+linkError.message);await load();return;}
+    }
     setSaving(false);
-    if (insertError) {setError(insertError.message);return;}
-    setTitle('');setSummary('');setEvidence('');setHypothesis('');setSources('');setAction('');
-    setNotice('Signal saved. It remains discovered until reviewed.'); await load();
+    setTitle('');setSummary('');setEvidence('');setHypothesis('');setSources('');setAction('');setSelectedSourceIds([]);
+    setNotice('Signal saved with its research-register links. It remains discovered until reviewed.'); await load();
   }
 
   async function changeStatus(item,next) {
@@ -143,6 +161,7 @@ export default function OpportunityRadar({ org, supabase }) {
       <textarea value={evidence} onChange={e=>setEvidence(e.target.value)} placeholder="What the evidence actually establishes (facts only)" rows={3}/>
       <textarea value={hypothesis} onChange={e=>setHypothesis(e.target.value)} placeholder="Interpretation / hypothesis (keep separate from facts)" rows={2}/>
       <textarea value={sources} onChange={e=>setSources(e.target.value)} placeholder="Source URLs — one per line" rows={2}/>
+      {researchSources.length>0&&<fieldset className="os-radar-source-picker"><legend>Link registered research sources</legend><small>Choose sources already in the Research Register. Raw URLs above can also be retained for quick discovery.</small>{researchSources.map(source=><label key={source.id}><input type="checkbox" checked={selectedSourceIds.includes(source.id)} onChange={e=>setSelectedSourceIds(current=>e.target.checked?[...current,source.id]:current.filter(id=>id!==source.id))}/><span>{source.title} · {source.source_type.replaceAll('_',' ')} · {source.brand_key}</span></label>)}</fieldset>}
       <select value={quality} onChange={e=>setQuality(e.target.value)}>{['verified','corroborated','preliminary','hypothesis'].map(x=><option key={x}>{x}</option>)}</select>
       <select value={confidence} onChange={e=>setConfidence(e.target.value)}>{['unassessed','high','medium','low'].map(x=><option key={x}>{x}</option>)}</select>
       <select value={potential} onChange={e=>setPotential(e.target.value)}>{['unassessed','high','medium','low'].map(x=><option key={x}>{x}</option>)}</select>
@@ -165,6 +184,7 @@ export default function OpportunityRadar({ org, supabase }) {
         <small>Commercial potential: {item.commercial_potential} · Effort: {item.estimated_effort}</small>
         {item.recommended_action&&<p><b>Next action:</b> {item.recommended_action}</p>}
         {!!item.source_urls?.length&&<div className="os-radar-sources"><b>Sources</b>{item.source_urls.map((url,i)=><a key={url+i} href={url} target="_blank" rel="noreferrer">{sourceHostname(url)}</a>)}</div>}
+        {!!linkedSources[item.id]?.length&&<div className="os-radar-sources"><b>Research Register</b>{linkedSources[item.id].map(source=><a key={source.id} href={source.source_url} target="_blank" rel="noreferrer">{source.title} · {source.publisher||source.source_type}</a>)}</div>}
         {item.status === 'approved' && <button type="button" className="os-chip-button" onClick={()=>convertToBusinessDevelopment(item)}>Convert to Business Development</button>}<label className="os-radar-status">Workflow stage<select value={item.status} onChange={e=>changeStatus(item,e.target.value)}>{STATUSES.filter(s=>s!=='converted').map(s=><option key={s} value={s}>{s.replaceAll('_',' ')}</option>)}{item.status==='converted'&&<option value="converted">converted</option>}</select></label>
       </article>)}
       {!visible.length&&<div className="os-empty">No signals match these filters. Capture the first signal above.</div>}
