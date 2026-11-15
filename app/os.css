@@ -26,3 +26,37 @@ input[type="search"]{color:#a33f35;caret-color:#a33f35}
 input[type="search"]::placeholder{color:#b98b85;opacity:1}
 input[type="search"]:focus-visible{border-color:#b34c40!important;box-shadow:0 0 0 3px rgba(179,76,64,.12);outline:none}
 @media(max-width:700px){.os-sidebar{position:relative;z-index:6;overflow:visible}.os-nav{position:relative;z-index:7;display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}.os-nav-item{flex:0 0 auto}.os-main{position:relative;z-index:1}}
+
+
+/* IA2 Holdings commercial desk */
+.os-ia2-tabs{display:flex;gap:7px;margin:5px 0 16px;border-bottom:1px solid #e8e9e2;padding-bottom:10px}
+.os-ia2-tabs button{border:1px solid #e3e6df;background:#f7f8f5;color:#657365;padding:8px 13px;border-radius:20px;font:600 9px 'DM Sans';cursor:pointer}
+.os-ia2-tabs button.active{background:#26382e;color:#fff;border-color:#26382e}
+.os-ia2-form h3{grid-column:1/-1;font:500 15px 'Playfair Display',serif;margin:4px 0}
+.os-ia2-form input,.os-ia2-form select,.os-ia2-form textarea{min-width:0}
+.os-ia2-date{display:flex;align-items:center;gap:8px;font:9px 'DM Sans';color:#697568}
+.os-ia2-date input{flex:1;min-width:0;border:1px solid #e4e6df;padding:9px;font:9px 'DM Sans'}
+.os-ia2-form textarea{grid-column:1/-1;border:1px solid #e4e6df;background:#fff;padding:10px;font:10px 'DM Sans';resize:vertical}
+.os-ia2-form button{grid-column:1/-1;justify-self:start;min-height:38px}
+.os-ia2-lead-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.os-ia2-lead{border:1px solid #e8e9e2;padding:15px;min-width:0}
+.os-ia2-lead h3{font:500 15px 'Playfair Display',serif;margin:13px 0 7px;overflow-wrap:anywhere}
+.os-ia2-lead p{font-size:9px;color:#687367;line-height:1.6;overflow-wrap:anywhere}
+.os-ia2-lead>a{font-size:9px;color:#8d433a;overflow-wrap:anywhere}
+.os-ia2-lead-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #eff0eb;padding-top:9px;margin-top:10px;font-size:8px;color:#7d857b;flex-wrap:wrap}
+.os-ia2-lead-foot b{font-size:10px;color:#26382e}
+.os-ia2-lead-foot label{display:flex;align-items:center;gap:6px}
+.os-ia2-lead-foot select{border:1px solid #e4e6df;background:#fff;padding:6px;font:8px 'DM Sans';color:#39443a}
+.os-ia2-profile{display:grid;gap:13px}
+.os-ia2-cover{padding:24px;background:linear-gradient(125deg,#20372c,#385747 58%,#8d7650);color:#fff}
+.os-ia2-cover>span{font-size:9px;letter-spacing:2px;color:#e6d5a9}
+.os-ia2-cover h2{font:500 23px 'Playfair Display',serif;max-width:600px;margin:13px 0 8px}
+.os-ia2-cover p{font-size:10px;color:#e4e9e2;margin:0}
+.os-ia2-profile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.os-ia2-profile-grid article{border:1px solid #e8e9e2;padding:14px}
+.os-ia2-profile-grid article small{font-size:7px;letter-spacing:1px;color:#8d7650}
+.os-ia2-profile-grid h3{font:500 14px 'Playfair Display',serif;margin:9px 0 6px;color:#2d3a30}
+.os-ia2-profile-grid p{font-size:9px;line-height:1.6;color:#737d72;margin:0}
+.os-ia2-profile-grid .is-hold{background:#faf8f1;border-color:#e9dfc7}
+.os-ia2-disclaimer{border-left:3px solid #b89b60;background:#faf8f1;padding:11px 13px;font-size:9px;line-height:1.6;color:#756b57}
+@media(max-width:700px){.os-ia2-lead-list,.os-ia2-profile-grid{grid-template-columns:1fr}.os-ia2-form h3,.os-ia2-form textarea,.os-ia2-form button{grid-column:auto}.os-ia2-cover{padding:18px}.os-ia2-cover h2{font-size:20px}}
