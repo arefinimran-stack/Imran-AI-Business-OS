@@ -1,3 +1,3 @@
 import './globals.css';
-export const metadata={title:'IA² Holdings | Venture Development & AI Intelligence',description:'IA² Holdings is a Bangladesh-focused venture development and business facilitation platform, led by legal and corporate expertise.'};
+export const metadata={title:'IA² Holdings | Private Corporate & Venture Group',description:'IA² Holdings is an integrated private corporate and venture group with legal and corporate expertise at its foundation.'};
 export default function RootLayout({children}){return <html lang="en"><body>{children}</body></html>}
