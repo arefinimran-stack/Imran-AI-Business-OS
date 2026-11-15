@@ -9,6 +9,11 @@ export default function AgentControlCentre({ org, supabase }) {
   const [agents, setAgents] = useState([]);
   const [tools, setTools] = useState([]);
   const [runs, setRuns] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  const [requestText, setRequestText] = useState('');
+  const [selectedAgent, setSelectedAgent] = useState('market-intelligence');
+  const [submitting, setSubmitting] = useState(false);
+  const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -19,27 +24,53 @@ export default function AgentControlCentre({ org, supabase }) {
       supabase.from('ai_agents').select('id,agent_key,name,division_key,purpose,capabilities,allowed_tools,approval_policy,status,instructions_version').eq('organization_id', org.id).order('name'),
       supabase.from('ai_tool_connections').select('id,tool_key,display_name,provider,connection_type,status,scopes,permitted_actions,notes,last_verified_at').eq('organization_id', org.id).order('display_name'),
       supabase.from('ai_agent_runs').select('id,agent_id,status,trigger_type,input_summary,output_summary,approval_required,created_at,completed_at').eq('organization_id', org.id).order('created_at', { ascending: false }).limit(20),
+      supabase.from('ai_orchestration_jobs').select('id,primary_agent_id,status,risk_class,request_text,correlation_id,created_at').eq('organization_id', org.id).order('created_at', { ascending: false }).limit(20),
     ]);
-    const failed = [a,t,r].find(x => x.error);
+    const failed = [a,t,r,j].find(x => x.error);
     if (failed) setError(failed.error.message);
-    else { setAgents(a.data || []); setTools(t.data || []); setRuns(r.data || []); }
+    else { setAgents(a.data || []); setTools(t.data || []); setRuns(r.data || []); setJobs(j.data || []); }
     setLoading(false);
   }, [org?.id, supabase]);
 
   useEffect(() => { load(); }, [load]);
   const runCounts = runs.reduce((acc, run) => { acc[run.status] = (acc[run.status] || 0) + 1; return acc; }, {});
+  const enabledAgents = agents.filter(a => ['configured','testing','active'].includes(a.status));
+
+  async function submitRequest(event) {
+    event.preventDefault();
+    if (!org?.id || !requestText.trim() || !enabledAgents.some(a => a.agent_key === selectedAgent)) return;
+    setSubmitting(true); setError(''); setNotice('');
+    const { data, error: invokeError } = await supabase.functions.invoke('orchestrator-intake', {
+      body: { organization_id: org.id, agent_key: selectedAgent, request_text: requestText.trim(), idempotency_key: crypto.randomUUID() },
+    });
+    setSubmitting(false);
+    if (invokeError) { setError(invokeError.message || 'Unable to queue orchestration request.'); return; }
+    setNotice(data?.message || (data?.replayed ? 'This request was already received.' : 'Request safely queued.'));
+    setRequestText('');
+    await load();
+  }
 
   return <section className="os-panel">
     <div className="os-panel-head"><div><h2>AI Agent & Tool Control Centre</h2><p>Specialist roster, approved capabilities, connector register and execution history.</p></div><span className="os-count">{agents.length} agents · {tools.length} tools</span></div>
-    <div className="os-attention"><div><b>Runtime status: registry foundation</b><small>The agent catalogue and access policies are stored in Supabase. The model execution service, tool dispatcher and run UI are not yet deployed. A registered agent is not represented as an autonomous running bot.</small></div></div>
+    <div className="os-attention"><div><b>Runtime status: authenticated intake deployed · execution not enabled</b><small>The orchestrator now accepts authenticated, organisation-scoped requests and records them in a durable queue. It does not yet call a model or execute tools. A queued request is not a completed agent run.</small></div></div>
+    {notice && <div className="os-alert success" role="status">{notice}</div>}
     {error && <div className="os-error" role="alert">{error}</div>}
     {loading ? <div className="os-empty">Loading agent and connector records…</div> : <>
       <div className="os-metrics">
+        <article className="os-metric"><span>QUEUED REQUESTS</span><strong>{jobs.filter(j => ['queued','planning','awaiting_approval','running'].includes(j.status)).length}</strong><small>Durable intake records</small></article>
         <article className="os-metric"><span>REGISTERED AGENTS</span><strong>{agents.length}</strong><small>Specialist definitions</small></article>
         <article className="os-metric"><span>CONFIGURED</span><strong>{agents.filter(a => ['configured','testing','active'].includes(a.status)).length}</strong><small>Registry configuration only</small></article>
         <article className="os-metric"><span>TOOL RECORDS</span><strong>{tools.length}</strong><small>Connection metadata</small></article>
         <article className="os-metric"><span>RUN RECORDS</span><strong>{runs.length}</strong><small>{Object.entries(runCounts).map(([k,v]) => k + ': ' + v).join(' · ') || 'No executions yet'}</small></article>
       </div>
+      <div className="os-section-head"><div><h2>Command intake</h2><p>Submit a bounded request to an enabled specialist. This creates a queue record only; model execution is not yet connected.</p></div></div>
+      <form className="os-form-grid" onSubmit={submitRequest}>
+        <select value={selectedAgent} onChange={e => setSelectedAgent(e.target.value)} disabled={!enabledAgents.length}>{enabledAgents.map(agent => <option key={agent.id} value={agent.agent_key}>{agent.name}</option>)}</select>
+        <textarea value={requestText} onChange={e => setRequestText(e.target.value)} rows={3} maxLength={6000} placeholder="Describe the research or internal analysis task…" required />
+        <button type="submit" disabled={submitting || !enabledAgents.length || !requestText.trim()}>{submitting ? 'Queueing…' : 'Submit to command queue'}</button>
+      </form>
+      <div className="os-section-head"><div><h2>Recent command requests</h2><p>Queue receipts only. These records do not mean the specialist has executed.</p></div></div>
+      {jobs.length ? <div className="os-task-list">{jobs.map(job => <article className="os-task-row" key={job.id}><div className="os-task-main"><b>{agents.find(a => a.id === job.primary_agent_id)?.name || 'Specialist'}</b><small>{job.request_text}</small><small>Trace: {job.correlation_id}</small></div><span className="os-chip">{statusLabel(job.status)}</span><small>{new Date(job.created_at).toLocaleString('en-GB')}</small></article>)}</div> : <div className="os-empty">No command requests have been queued.</div>}
       <div className="os-section-head"><div><h2>Specialist agents</h2><p>Each agent has a bounded responsibility and an explicit approval posture.</p></div></div>
       <div className="os-venture-grid">{agents.map(agent => <article className="os-venture" key={agent.id}>
         <div className="os-venture-top"><span>{agent.division_key || 'Central function'}</span><span className="os-chip">{statusLabel(agent.status)}</span></div>
