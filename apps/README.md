@@ -4,16 +4,16 @@ This branch adds three independently deployable Next.js applications.
 
 | Application | Vercel project | Root directory | Purpose |
 |---|---|---|---|
-| Adv. Imran Arefin | adv-imran-arefin | apps/advocate-website | Public professional website and chamber enquiries |
+| Arefin Chamber | adv-imran-arefin | apps/advocate-website | Public professional website and chamber enquiries |
 | IA² Holdings | ia2-holdings | apps/ia2-website | Corporate group and venture platform website |
-| LegalLex Lawyer Workbench | legallex-lawyer-workbench | apps/lawyer-workbench | Lawyer-facing product prototype |
+| The Chamber | the-chamber | apps/lawyer-workbench | Lawyer-facing product prototype |
 
 Each Vercel project is connected to this repository and has its own root directory. The existing private IMRAN AI Business OS application is not replaced.
 
 ## Important product boundaries
 
-- Personal and corporate website copy is a working draft. Verify all professional credentials, practice claims, legal entity names, addresses and operating capabilities before public launch.
-- The lawyer workbench is a front-end prototype only. No AI model, case-law database, client matter database, authentication, document storage or secure file handling is connected yet.
+- Arefin Chamber is the personal legal practice brand of Adv. Imran Arefin; Legal Empire is the wider personal-brand initiative. Personal and corporate website copy is a working draft. Verify all professional credentials, practice claims, legal entity names, addresses and operating capabilities before public launch.
+- The Chamber is a front-end prototype only; its sign-in and 'Open Your Chamber' workflow are not connected to production authentication yet. No AI model, case-law database, client matter database, authentication, document storage or secure file handling is connected yet.
 - Never enter confidential client data into the prototype.
 - Case references must come from primary or otherwise authoritative legal sources and be verified before professional use.
 - C3 Lifestyle and Bold Cotton remain on research-only hold.
