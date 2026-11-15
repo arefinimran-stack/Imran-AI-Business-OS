@@ -22,6 +22,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [org, setOrg] = useState(null);
   const [tasks, setTasks] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [ventures, setVentures] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [matters, setMatters] = useState([]);
@@ -34,6 +35,8 @@ export default function Dashboard() {
   const [taskPriority, setTaskPriority] = useState('normal');
   const [taskDescription, setTaskDescription] = useState('');
   const [taskDue, setTaskDue] = useState('');
+  const [taskProjectId, setTaskProjectId] = useState('');
+  const [taskMatterId, setTaskMatterId] = useState('');
   const [documentTitle, setDocumentTitle] = useState('');
   const [documentContent, setDocumentContent] = useState('');
   const [documentLanguage, setDocumentLanguage] = useState('English');
@@ -58,15 +61,16 @@ export default function Dashboard() {
       const { data: orgData, error: orgError } = await supabase.from('organizations').select('id,name,slug').eq('slug', 'imran-ai').single();
       if (orgError) throw new Error(orgError.message === 'JSON object requested, multiple (or no) rows returned' ? 'Founder workspace access is not active for this account. Sign out and sign in again, or request founder access.' : orgError.message);
       setOrg(orgData);
-      const [t, v, c, m, d] = await Promise.all([
+      const [t, v, c, m, d, p] = await Promise.all([
         supabase.from('tasks').select('id,title,description,status,priority,due_at,created_at,related_matter_id').eq('organization_id', orgData.id).order('created_at', { ascending: false }).limit(100),
         supabase.from('ventures').select('id,name,slug,category,status,description').eq('organization_id', orgData.id).order('name'),
         supabase.from('contacts').select('id,full_name,organization_name,email,phone,contact_type,created_at').eq('organization_id', orgData.id).order('created_at', { ascending: false }).limit(100),
         supabase.from('legal_matters').select('id,reference_code,title,matter_type,court_or_forum,status,priority,next_hearing_at,confidential').eq('organization_id', orgData.id).order('next_hearing_at', { ascending: true, nullsFirst: false }).limit(100),
         supabase.from('legal_documents').select('id,title,template_key,language,status,created_at,matter_id').eq('organization_id', orgData.id).order('created_at', { ascending: false }).limit(100),
+        supabase.from('projects').select('id,name,status,priority,target_date').eq('organization_id', orgData.id).order('created_at', { ascending: false }).limit(100),
       ]);
-      for (const result of [t, v, c, m, d]) if (result.error) throw result.error;
-      setTasks(t.data || []); setVentures(v.data || []); setContacts(c.data || []);
+      for (const result of [t, v, c, m, d, p]) if (result.error) throw result.error;
+      setTasks(t.data || []); setProjects(p.data || []); setVentures(v.data || []); setContacts(c.data || []);
       setMatters(m.data || []); setDocuments(d.data || []);
     } catch (e) { setError(e.message || 'Unable to load workspace data.'); }
     finally { setLoading(false); }
@@ -77,10 +81,10 @@ export default function Dashboard() {
   async function addTask(event) {
     event.preventDefault(); if (!taskTitle.trim() || !org) return;
     setSaving(true); setError(''); setNotice('');
-    const { error: insertError } = await supabase.from('tasks').insert({ organization_id: org.id, title: taskTitle.trim(), description: taskDescription.trim() || null, due_at: taskDue ? new Date(taskDue + 'T09:00:00').toISOString() : null, priority: taskPriority, status: 'todo' });
+    const { error: insertError } = await supabase.from('tasks').insert({ organization_id: org.id, title: taskTitle.trim(), description: taskDescription.trim() || null, due_at: taskDue ? new Date(taskDue + 'T09:00:00').toISOString() : null, priority: taskPriority, status: 'todo', project_id: taskProjectId || null, related_matter_id: taskMatterId || null });
     setSaving(false);
     if (insertError) { setError(insertError.message); return; }
-    setTaskTitle(''); setTaskDescription(''); setTaskDue(''); setNotice('Task saved to the workspace.'); await load();
+    setTaskTitle(''); setTaskDescription(''); setTaskDue(''); setTaskProjectId(''); setTaskMatterId(''); setNotice('Task saved to the workspace.'); await load();
   }
 
   async function changeTaskStatus(task, status) {
@@ -186,8 +190,8 @@ export default function Dashboard() {
             <div className="os-attention"><div><b>Content production and revenue workflow</b><small>Research → Editorial brief → Writing → Script & creative → Founder / Advocate review → Approval → Scheduling → Publishing → Analytics → Lead attribution.</small></div></div>
           </section>}
           {active === 'Tasks' && <section className="os-panel"><PanelTitle title="Tasks & execution" sub="Create, prioritise and update work in the live workspace." count={openTasks.length + ' open'} />
-            <form className="os-inline-form" onSubmit={addTask}><input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="Add a task or next action…" required/><input value={taskDescription} onChange={e => setTaskDescription(e.target.value)} placeholder="Details / acceptance criteria (optional)"/><input type="date" value={taskDue} onChange={e => setTaskDue(e.target.value)} aria-label="Task due date (optional)"/><select value={taskPriority} onChange={e => setTaskPriority(e.target.value)}><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option><option value="low">Low</option></select><button disabled={saving}>{saving ? 'Saving…' : 'Add task'}</button></form>
-            <TaskList tasks={tasks} onStatus={changeTaskStatus}/></section>}
+            <form className="os-inline-form" onSubmit={addTask}><input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="Add a task or next action…" required/><input value={taskDescription} onChange={e => setTaskDescription(e.target.value)} placeholder="Details / acceptance criteria (optional)"/><select value={taskProjectId} onChange={e => setTaskProjectId(e.target.value)} aria-label="Link task to a project"><option value="">No project linked</option>{projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select><select value={taskMatterId} onChange={e => setTaskMatterId(e.target.value)} aria-label="Link task to a legal matter"><option value="">No legal matter linked</option>{matters.filter(matter => !["closed","archived"].includes(matter.status)).map(matter => <option key={matter.id} value={matter.id}>{matter.reference_code} · {matter.title}</option>)}</select><input type="date" value={taskDue} onChange={e => setTaskDue(e.target.value)} aria-label="Task due date (optional)"/><select value={taskPriority} onChange={e => setTaskPriority(e.target.value)}><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option><option value="low">Low</option></select><button disabled={saving}>{saving ? 'Saving…' : 'Add task'}</button></form>
+            <TaskList tasks={tasks} projects={projects} matters={matters} onStatus={changeTaskStatus}/></section>}
           {active === 'Legal matters' && <section className="os-panel"><PanelTitle title="Legal matters" sub="Restricted legal workspace. Matters are confidential by default." count={openMatters.length + ' open'} />
             <form className="os-form-grid" onSubmit={addMatter}><input value={matterTitle} onChange={e => setMatterTitle(e.target.value)} placeholder="Matter title / short description" required/><input value={matterType} onChange={e => setMatterType(e.target.value)} placeholder="Matter type (e.g. Civil, Criminal, Company)"/><input value={matterCourt} onChange={e => setMatterCourt(e.target.value)} placeholder="Court / forum"/><select value={matterPriority} onChange={e => setMatterPriority(e.target.value)}><option value="normal">Normal priority</option><option value="high">High priority</option><option value="urgent">Urgent priority</option><option value="low">Low priority</option></select><input type="date" value={matterHearing} onChange={e => setMatterHearing(e.target.value)} aria-label="Next hearing date (optional)"/><button disabled={saving}>{saving ? 'Saving…' : 'Create confidential matter'}</button></form>
             <MatterList matters={matters} onUpdate={changeMatter}/></section>}
@@ -208,9 +212,9 @@ export default function Dashboard() {
 
 function PanelTitle({ title, sub, count }) { return <div className="os-panel-head"><div><h2>{title}</h2><p>{sub}</p></div><span className="os-count">{count}</span></div>; }
 function Empty({ text }) { return <div className="os-empty">{text}</div>; }
-function TaskList({ tasks, onStatus }) {
+function TaskList({ tasks, projects = [], matters = [], onStatus }) {
   if (!tasks.length) return <Empty text="No tasks in this workspace yet. Add a task above to get started." />;
-  return <div className="os-task-list">{tasks.map(t=><article className="os-task-row" key={t.id}><div className="os-task-main"><b>{t.title}</b><small>{t.description || 'No additional details'}</small></div><span className={'os-priority ' + t.priority}>{priorityLabel(t.priority)}</span><small className="os-due">{dateLabel(t.due_at)}</small><select value={t.status} onChange={e => onStatus(t, e.target.value)} aria-label={'Status for ' + t.title}><option value="todo">To do</option><option value="in_progress">In progress</option><option value="blocked">Blocked</option><option value="done">Done</option><option value="cancelled">Cancelled</option></select></article>)}</div>;
+  return <div className="os-task-list">{tasks.map(t=><article className="os-task-row" key={t.id}><div className="os-task-main"><b>{t.title}</b><small>{t.description || 'No additional details'}</small><small>{[projects.find(p => p.id === t.project_id)?.name, matters.find(m => m.id === t.related_matter_id)?.reference_code].filter(Boolean).join(' · ') || 'Unlinked task'}</small></div><span className={'os-priority ' + t.priority}>{priorityLabel(t.priority)}</span><small className="os-due">{dateLabel(t.due_at)}</small><select value={t.status} onChange={e => onStatus(t, e.target.value)} aria-label={'Status for ' + t.title}><option value="todo">To do</option><option value="in_progress">In progress</option><option value="blocked">Blocked</option><option value="done">Done</option><option value="cancelled">Cancelled</option></select></article>)}</div>;
 }
 function MatterList({ matters, onUpdate }) {
   if (!matters.length) return <Empty text="No legal matters registered. New matters are marked confidential by default." />;
@@ -221,7 +225,7 @@ function Overview({ tasks, openTasks, overdue, ventures, contacts, openMatters, 
   return <>
     <div className="os-section-head"><div><h2>Executive overview</h2><p>Live records from your operating workspace.</p></div><span className="os-phase">CONNECTED · CORE MODULES</span></div>
     <div className="os-metrics">{metrics.map(([label,value,sub])=><article className="os-metric" key={label}><span>{label}</span><strong>{value}</strong><small>{sub}</small></article>)}</div>
-    <div className="os-overview-grid"><section className="os-panel"><PanelTitle title="Priority desk" sub="Your most recent actions." count={openTasks.length + ' open'}/><TaskList tasks={tasks.slice(0,6)} onStatus={onTaskStatus}/><button className="os-link" onClick={()=>setActive('Tasks')}>Open task desk →</button></section>
+    <div className="os-overview-grid"><section className="os-panel"><PanelTitle title="Priority desk" sub="Your most recent actions." count={openTasks.length + ' open'}/><TaskList tasks={tasks.slice(0,6)} projects={projects} matters={matters} onStatus={onTaskStatus}/><button className="os-link" onClick={()=>setActive('Tasks')}>Open task desk →</button></section>
       <section className="os-panel"><PanelTitle title="Founder attention" sub="Items that may need immediate review." count={overdue.length + ' overdue'}/><div className="os-attention"><div><b>{overdue.length ? 'Overdue tasks' : 'No overdue tasks'}</b><small>{overdue.length ? 'Review due dates and move blocked work forward.' : 'Your task register has no overdue items.'}</small></div><div><b>{openMatters.length} active legal matters</b><small>Keep court dates and client commitments current.</small></div><div><b>{ventures.length} registered ventures</b><small>Business metrics remain blank until verified.</small></div></div><button className="os-link" onClick={()=>setActive('Legal matters')}>Open legal desk →</button></section></div>
     <div className="os-section-head os-modules-head"><div><h2>Operating modules</h2><p>Navigate directly to live registers.</p></div></div>
     <div className="os-module-grid">{[['Legal matters','§','Confidential matter register'],['Tasks','☷','Daily execution and priorities'],['Contacts','◎','Clients, leads and relationships'],['Ventures','◇','Business unit portfolio'],['Documents','▤','Legal document register']].map(([name,icon,desc])=><button key={name} className="os-module" onClick={()=>setActive(name)}><span>{icon}</span><b>{name}</b><small>{desc}</small><i>↗</i></button>)}</div>
