@@ -1,7 +1,7 @@
 # AI Agent & Tool Orchestration Blueprint
 
 **System:** IMRAN AI Business OS  
-**Status:** Architecture baseline — implementation staged  
+**Status:** Architecture baseline committed; orchestration persistence and database guardrails deployed; runtime staged  
 **Owner:** Founder Command Centre  
 **Primary principle:** One orchestrator, bounded specialists, governed tools, auditable execution.
 
@@ -118,7 +118,7 @@ Allowed states:
 
 State transitions must be explicit and validated server-side. A failed or timed-out tool call must not be marked successful. Retries must reuse an idempotency key for the same intended action. Approval must be bound to a specific run, action payload, target and expiry; changing the payload invalidates the approval.
 
-The existing `public.ai_agent_runs` table provides the first execution-history record. It currently has no run rows. The next implementation increment should add a structured job payload/result contract and append-only tool-call receipts before enabling live execution.
+The existing `public.ai_agent_runs` table remains the specialist-level execution history. Three additional organisation-scoped tables are now deployed: `ai_orchestration_jobs` (request, risk class, state, idempotency and correlation), `ai_tool_call_receipts` (append-only tool outcomes and policy decisions), and `ai_approval_requests` (exact action payload, hash, target, expiry and decision). Database triggers enforce valid job-state transitions and prevent approval payload mutation after request creation. All three tables have RLS enabled; authenticated access is organisation-scoped, and anonymous privileges are revoked. The new tables currently contain zero execution records because the runtime is not yet deployed.
 
 ## 7. Approval and risk matrix
 
@@ -220,4 +220,4 @@ Use append-only audit events for approvals and externally consequential actions.
 
 ## 13. Current implementation truth
 
-The database currently contains seven agent definitions, seven tool-connection metadata records and an empty execution-history table. The Founder Command Centre has a read-only registry view. The orchestration runtime, model provider adapter, policy-enforcing tool dispatcher, approval workflow and live run interface are not yet deployed. This blueprint is the implementation contract; it is not a claim that autonomous agents are already running.
+The database currently contains seven agent definitions and seven tool-connection metadata records. The three new orchestration tables are deployed and verified, but all job, receipt and approval tables are empty. The Founder Command Centre has a read-only registry view. The orchestration Edge Function, model provider adapter, server-side tool dispatcher, connected model credentials and live run/approval interface are not yet deployed. Signed-in browser tests are outstanding. This blueprint is the implementation contract; it is not a claim that autonomous agents are already running.
