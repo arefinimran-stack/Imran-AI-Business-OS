@@ -221,3 +221,38 @@ Use append-only audit events for approvals and externally consequential actions.
 ## 13. Current implementation truth
 
 The database currently contains seven agent definitions and seven tool-connection metadata records. The three new orchestration tables are deployed and verified, but all job, receipt and approval tables are empty. The Founder Command Centre has a read-only registry view. The authenticated `orchestrator-intake` Edge Function is deployed and the Founder Command Centre now includes a queue-only request form. Vercel is configured for NVIDIA as the preferred provider and has a Nemotron model selection, but the `NVIDIA_API_KEY` environment entry is currently empty. Therefore, inference cannot run yet. The model provider adapter, valid model credential, server-side tool dispatcher and live run/approval interface are not yet deployed. Signed-in browser tests are outstanding. This blueprint is the implementation contract; it is not a claim that autonomous agents are already running.
+
+
+## 14. NVIDIA inference adapter contract (implementation-ready)
+
+The selected NVIDIA endpoint exposes an OpenAI-compatible Chat Completions API. The first adapter should be server-side only and should not expose provider credentials or raw provider errors to the browser.
+
+- Base URL: `https://integrate.api.nvidia.com/v1`
+- Endpoint: `POST /chat/completions`
+- Authentication: `Authorization: Bearer $NVIDIA_API_KEY`
+- Model: `nvidia/nemotron-3.5-super-vl-120b-a12b` (read from `NVIDIA_MODEL`; never hard-code a different model silently).
+- Initial request mode: `stream: false` for reliable persistence and bounded execution.
+- Initial token budget: at least 4096 because reasoning and visible output share the completion budget.
+- Initial reasoning mode: `reasoning_effort: low` for the first functional and cost-control test; raise only after quality evaluation.
+- Initial scope: one read-only Market Intelligence run. Do not pass provider tool definitions or enable tool execution in the first inference milestone.
+
+The adapter must:
+1. Validate the caller's JWT and active organisation membership before reading or changing a job.
+2. Confirm the job belongs to that organisation, is queued, and is assigned to an enabled agent.
+3. Load only the agent instructions and request fields needed for this run.
+4. Send a bounded system/developer instruction plus the founder request to NVIDIA; treat the founder request and all retrieved material as untrusted data, not instructions to override policy.
+5. Enforce a request timeout and a maximum response size; map timeout, rate-limit, authentication, and provider errors to safe internal statuses.
+6. Persist the specialist run, job result, and a redacted provider receipt. Never persist API keys, authorization headers, hidden reasoning, or unredacted provider payloads.
+7. Mark the job succeeded only after the run and result are durably saved. On failure, persist a failed status and a redacted error summary.
+8. Keep all tool calls disabled. A model response is not permission to invoke tools.
+9. Return a concise status and trace ID to the client; the complete result is loaded through organisation-scoped RLS.
+10. Keep publishing, outreach, legal filing, payments, credential changes and other external or irreversible actions unavailable.
+
+### Founder credential step
+
+A valid NVIDIA API key must be added as a server-side production environment secret named `NVIDIA_API_KEY` in Vercel Project Settings → Environment Variables, with Production selected. The value must be entered directly into Vercel and must never be pasted into ChatGPT, committed to Git, placed in a browser variable, or written to Supabase tables. Redeploy after adding or changing the secret. The current production entry is empty, so inference remains blocked until this step is completed.
+
+Official provider references:
+- NVIDIA model API reference: https://docs.api.nvidia.com/nim/reference/nvidia-nemotron-3_5-super-vl-120b-a12b-infer
+- NVIDIA model deployment example: https://build.nvidia.com/nvidia/nemotron-3.5-super-vl-120b-a12b/deploy
+- NVIDIA NIM guide: https://docs.nvidia.com/nim/large-language-models/2.1.6/get-started/advanced/get-started-nemotron-3.5-super-vl.html
