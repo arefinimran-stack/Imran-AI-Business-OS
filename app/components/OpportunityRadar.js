@@ -79,6 +79,51 @@ export default function OpportunityRadar({ org, supabase }) {
     setNotice('Signal status updated.');
   }
 
+  async function convertToBusinessDevelopment(item) {
+    if (item.status !== 'approved' || !org?.id) return;
+    setError(''); setNotice('');
+    const marker = '[Radar signal: ' + item.id + ']';
+    const { data: existing, error: lookupError } = await supabase.from('business_opportunities')
+      .select('id').eq('organization_id', org.id).ilike('notes', '%' + marker + '%').limit(1);
+    if (lookupError) { setError(lookupError.message); return; }
+    if (!existing?.length) {
+      const ventureByBrand = {
+        'arefin-legal-corporate': '351a6cda-ab10-4147-a46a-ea021fdfe644',
+        'ia2-holdings': '958deedc-1a85-4147-9f6d-b53f427b04f1',
+        'c3-lifestyle': 'd5ac75fc-4472-4959-a542-dad7c998e548',
+        'bold-cotton': '26e76c6f-e12c-4b1b-a704-220c9151bdb7'
+      };
+      const notes = [
+        marker,
+        'Origin: Opportunity Radar',
+        'Division: ' + label(item.brand_key),
+        'Signal type: ' + item.signal_type,
+        'Evidence quality: ' + item.evidence_quality,
+        'Evidence: ' + (item.evidence_summary || 'Not supplied'),
+        'Hypothesis: ' + (item.hypothesis || 'Not supplied'),
+        'Sources: ' + ((item.source_urls || []).join(', ') || 'Not supplied'),
+        'Recommended action: ' + (item.recommended_action || 'Review and qualify manually')
+      ].join('\\n');
+      const { error: insertError } = await supabase.from('business_opportunities').insert({
+        organization_id: org.id,
+        title: item.title,
+        stage: 'new',
+        currency: 'BDT',
+        venture_id: ventureByBrand[item.brand_key] || null,
+        notes
+      });
+      if (insertError) { setError(insertError.message); return; }
+    }
+    const { error: updateError } = await supabase.from('opportunity_signals')
+      .update({ status: 'converted' }).eq('id', item.id).eq('organization_id', org.id);
+    if (updateError) {
+      setError('Business Development record created or already present, but Radar status update failed. Refresh and retry safely.');
+      return;
+    }
+    setItems(current => current.map(x => x.id === item.id ? { ...x, status: 'converted' } : x));
+    setNotice(existing?.length ? 'Existing Business Development record linked; signal marked converted.' : 'Approved signal converted into a new Business Development opportunity.');
+  }
+
   const visible=items.filter(x=>(statusFilter==='all'||x.status===statusFilter)&&(brandFilter==='all'||x.brand_key===brandFilter));
   const counts=STATUSES.map(s=>({status:s,count:items.filter(x=>x.status===s).length}));
   const label=(key)=>BRANDS.find(x=>x[0]===key)?.[1]||key;
@@ -120,7 +165,7 @@ export default function OpportunityRadar({ org, supabase }) {
         <small>Commercial potential: {item.commercial_potential} · Effort: {item.estimated_effort}</small>
         {item.recommended_action&&<p><b>Next action:</b> {item.recommended_action}</p>}
         {!!item.source_urls?.length&&<div className="os-radar-sources"><b>Sources</b>{item.source_urls.map((url,i)=><a key={url+i} href={url} target="_blank" rel="noreferrer">{sourceHostname(url)}</a>)}</div>}
-        <label className="os-radar-status">Workflow stage<select value={item.status} onChange={e=>changeStatus(item,e.target.value)}>{STATUSES.map(s=><option key={s} value={s}>{s.replaceAll('_',' ')}</option>)}</select></label>
+        {item.status === 'approved' && <button type="button" className="os-chip-button" onClick={()=>convertToBusinessDevelopment(item)}>Convert to Business Development</button>}<label className="os-radar-status">Workflow stage<select value={item.status} onChange={e=>changeStatus(item,e.target.value)}>{STATUSES.filter(s=>s!=='converted').map(s=><option key={s} value={s}>{s.replaceAll('_',' ')}</option>)}{item.status==='converted'&&<option value="converted">converted</option>}</select></label>
       </article>)}
       {!visible.length&&<div className="os-empty">No signals match these filters. Capture the first signal above.</div>}
     </div>}
