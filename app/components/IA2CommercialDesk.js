@@ -8,6 +8,16 @@ const PRODUCTS = ['Knitwear', 'Woven garments', 'Denim', 'Sportswear', 'Workwear
 const STAGES = ['new', 'qualified', 'proposal', 'negotiation', 'won', 'lost'];
 const META_MARKER = '[IA2_LEAD_META]';
 
+const SEED_PROSPECTS = [
+  { key:'mn-inter-fashion', company:'MN Inter-Fashion Ltd.', country:'Japan', website:'https://mn-interfashion.com/en/company/', buyerType:'Sourcing office', product:'Woven garments', grade:GRADES[1], intent:'Named in a Japan Textile Importers Association delegation that expressed interest in increasing high-value and fashionable apparel imports from Bangladesh; official company profile lists apparel, textile procurement and a Dhaka office.', evidenceUrl:'https://unb.com.bd/category/Business/japanese-buyers-keen-to-source-high-value-fashionable-apparel-from-bangladesh/172772', evidenceSummary:'Public report names MN Inter-Fashion in the JTIA delegation; official profile confirms apparel/textile procurement and Dhaka office.' },
+  { key:'kowa-company', company:'Kowa Company, Ltd.', country:'Japan', website:'https://www.kowa.co.jp/eng/company/index.html', buyerType:'Brand / retailer', product:'Woven garments', grade:GRADES[1], intent:'Named in a Japan Textile Importers Association delegation discussing increased imports of high-value and fashionable apparel from Bangladesh; official site describes textile and apparel OEM operations.', evidenceUrl:'https://unb.com.bd/category/Business/japanese-buyers-keen-to-source-high-value-fashionable-apparel-from-bangladesh/172772', evidenceSummary:'Public report names Kowa in the JTIA delegation; official pages confirm textile and apparel business.' },
+  { key:'toyoshima', company:'Toyoshima & Co., Ltd.', country:'Japan', website:'https://www.toyoshima.co.jp/en/company/outline/', buyerType:'Sourcing office', product:'Knitwear', grade:GRADES[1], intent:'Named in a Japan Textile Importers Association delegation discussing increased apparel imports from Bangladesh; official profile confirms textile import/export and a Dhaka overseas office.', evidenceUrl:'https://unb.com.bd/category/Business/japanese-buyers-keen-to-source-high-value-fashionable-apparel-from-bangladesh/172772', evidenceSummary:'Public report names Toyoshima in the JTIA delegation; official profile confirms textile import/export and Dhaka office.' },
+  { key:'ait-corporation', company:'AIT Corporation', country:'Japan', website:'https://www.ait-jp.com/en/corporation-profile/', buyerType:'Importer / wholesaler', product:'Woven garments', grade:GRADES[2], intent:'Named in a Japan Textile Importers Association delegation; official profile lists clothing import/export among its business activities. Direct apparel buying role needs clarification.', evidenceUrl:'https://unb.com.bd/category/Business/japanese-buyers-keen-to-source-high-value-fashionable-apparel-from-bangladesh/172772', evidenceSummary:'Public report names AIT Corporation in the JTIA delegation; official profile lists clothing import/export, but direct buyer status remains unconfirmed.' },
+  { key:'marubeni', company:'Marubeni Corporation', country:'Japan', website:'https://www.marubeni.com/en/company/profile/index.html', buyerType:'Sourcing office', product:'Man-made fibre / technical textiles', grade:GRADES[1], intent:'BGMEA reported a strategic partnership and an agreed roadmap under which Marubeni would share three-year sourcing plans and BGMEA would curate SME factories for Japanese demand.', evidenceUrl:'https://www.bgmea.com.bd/page/BGMEA_and_Marubeni_Corporation_Forge_Strategic_Partnership_to_Boost_Apparel_Exports_to_Japan', evidenceSummary:'BGMEA public release describes a sourcing-plan and supplier-curation roadmap with Marubeni.' },
+  { key:'teijin-frontier', company:'Teijin Frontier', country:'Japan', website:'https://www2.teijin-frontier.com/english/company/group/japan/22', buyerType:'Manufacturer / investor', product:'Man-made fibre / technical textiles', grade:GRADES[2], intent:'Senior representatives attended the BGMEA Japan Desk launch alongside major Japanese buyers; the group has relevant textile and apparel production activities. Current Bangladesh procurement mandate needs confirmation.', evidenceUrl:'https://www.tbsnews.net/economy/rmg/bgmea-launches-japan-desk-tap-bigger-share-japans-22b-apparel-market-1552016', evidenceSummary:'Public report confirms senior Teijin Frontier representatives attended the Japan Desk launch; official group profile confirms apparel production activity.' },
+];
+
+
 function readMeta(notes) {
   if (!notes || !notes.includes(META_MARKER)) return {};
   try { return JSON.parse(notes.split(META_MARKER)[1].split('\n\n')[0]); } catch { return {}; }
@@ -136,6 +146,36 @@ export default function IA2CommercialDesk({ org, supabase }) {
     await load();
   }
 
+
+  async function importSeedLead(seed) {
+    if (!org || !org.id) return;
+    setSaving(true); setError(''); setNotice('');
+    const { data: found, error: lookupError } = await supabase.from('contacts').select('id,notes').eq('organization_id', org.id).ilike('organization_name', seed.company).limit(1);
+    if (lookupError) { setSaving(false); setError(lookupError.message); return; }
+    let contactId = found && found[0] ? found[0].id : null;
+    const meta = { schema:'ia2-buyer-v1', country:seed.country, website:seed.website, buyer_type:seed.buyerType, product_focus:seed.product, verification_grade:seed.grade, bangladesh_intent:seed.intent, evidence_url:seed.evidenceUrl, evidence_summary:seed.evidenceSummary, contact_source:'Public research; manually verify procurement contact', outreach_status:'not_contacted' };
+    if (!contactId) {
+      const { data: created, error: contactError } = await supabase.from('contacts').insert({ organization_id:org.id, full_name:'Procurement / Business Development Team', organization_name:seed.company, contact_type:'prospect', notes:META_MARKER+'\n'+JSON.stringify(meta)+'\n\nImported from IA² Japan buyer research batch 01.' }).select('id').single();
+      if (contactError) { setSaving(false); setError(contactError.message); return; }
+      contactId = created.id;
+    } else if (!(found[0].notes || '').includes(META_MARKER)) {
+      const prior = found[0].notes || '';
+      const { error: noteError } = await supabase.from('contacts').update({ notes:META_MARKER+'\n'+JSON.stringify(meta)+'\n\n'+prior }).eq('id', contactId).eq('organization_id', org.id);
+      if (noteError) { setSaving(false); setError(noteError.message); return; }
+    }
+    const marker = '[IA2_SEED:'+seed.key+']';
+    const { data: existingOpp, error: oppLookupError } = await supabase.from('business_opportunities').select('id').eq('organization_id',org.id).eq('contact_id',contactId).ilike('notes','%'+marker+'%').limit(1);
+    if (oppLookupError) { setSaving(false); setError(oppLookupError.message); return; }
+    if (!(existingOpp || []).length) {
+      const { data: ventureRows } = await supabase.from('ventures').select('id').eq('organization_id',org.id).eq('slug','ia2-holdings').limit(1);
+      const oppNotes = marker+'\nIA² research batch 01 · '+seed.grade+'\nProduct focus: '+seed.product+'\nBangladesh intent: '+seed.intent+'\nOfficial company profile: '+seed.website+'\nEvidence: '+seed.evidenceUrl+'\nEvidence summary: '+seed.evidenceSummary+'\nNo outreach sent. Founder approval required.';
+      const { error: oppError } = await supabase.from('business_opportunities').insert({ organization_id:org.id, title:seed.company+' — Bangladesh apparel sourcing / market-entry prospect', contact_id:contactId, venture_id:ventureRows && ventureRows[0] ? ventureRows[0].id : null, stage:'new', currency:'USD', notes:oppNotes });
+      if (oppError) { setSaving(false); setError(oppError.message); await load(); return; }
+    }
+    setSaving(false); setNotice(existingOpp && existingOpp.length ? seed.company+' is already in the IA² pipeline.' : seed.company+' added to the IA² buyer CRM. No outreach was sent.');
+    await load();
+  }
+
   async function updateStage(item, nextStage) {
     const { error: updateError } = await supabase.from('business_opportunities').update({ stage: nextStage }).eq('id', item.id).eq('organization_id', org.id);
     if (updateError) { setError(updateError.message); return; }
@@ -164,6 +204,19 @@ export default function IA2CommercialDesk({ org, supabase }) {
         <article><small>WON OPPORTUNITIES</small><b>{won}</b></article>
       </div>
       <div className="os-attention"><div><b>Lead-quality rule</b><small>A real company is not automatically a real buyer. Keep evidence of Bangladesh intent, buyer authority and product requirement. Grade C is discovery only. Do not send outreach until manually reviewed and approved.</small></div></div>
+
+      <div className="os-ia2-seed-section">
+        <div className="os-panel-head"><div><h2>Japan buyer prospects — research batch 01</h2><p>Six real companies identified from public industry and company sources. Import a prospect to CRM after reviewing its evidence grade.</p></div><span className="os-count">6 researched</span></div>
+        <div className="os-ia2-seed-grid">
+          {SEED_PROSPECTS.map(seed => <article className="os-ia2-seed" key={seed.key}>
+            <div className="os-venture-top"><span>{seed.country} · {seed.buyerType}</span><span className="os-chip">{seed.grade.split(' - ')[0]}</span></div>
+            <h3>{seed.company}</h3><p>{seed.intent}</p>
+            <small>Product angle: {seed.product}</small>
+            <div className="os-ia2-seed-links"><a href={seed.website} target="_blank" rel="noreferrer">Official profile ↗</a><a href={seed.evidenceUrl} target="_blank" rel="noreferrer">Bangladesh evidence ↗</a></div>
+            <button type="button" className="os-chip-button" disabled={saving} onClick={() => importSeedLead(seed)}>Add to CRM</button>
+          </article>)}
+        </div>
+      </div>
       <form className="os-form-grid os-ia2-form" onSubmit={addBuyer}>
         <h3>Register international buyer / market-entry prospect</h3>
         <input value={company} onChange={e => setCompany(e.target.value)} placeholder="Company / buyer legal name" required />
