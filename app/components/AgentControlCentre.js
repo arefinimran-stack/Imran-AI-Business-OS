@@ -20,7 +20,7 @@ export default function AgentControlCentre({ org, supabase }) {
   const load = useCallback(async () => {
     if (!org?.id) return;
     setLoading(true); setError('');
-    const [a, t, r] = await Promise.all([
+    const [a, t, r, j] = await Promise.all([
       supabase.from('ai_agents').select('id,agent_key,name,division_key,purpose,capabilities,allowed_tools,approval_policy,status,instructions_version').eq('organization_id', org.id).order('name'),
       supabase.from('ai_tool_connections').select('id,tool_key,display_name,provider,connection_type,status,scopes,permitted_actions,notes,last_verified_at').eq('organization_id', org.id).order('display_name'),
       supabase.from('ai_agent_runs').select('id,agent_id,status,trigger_type,input_summary,output_summary,approval_required,created_at,completed_at').eq('organization_id', org.id).order('created_at', { ascending: false }).limit(20),
