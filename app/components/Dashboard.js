@@ -4,12 +4,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
 import ExtendedModules from './ExtendedModules';
 import OpportunityRadar from './OpportunityRadar';
+import IA2CommercialDesk from './IA2CommercialDesk';
 import AgentControlCentre from './AgentControlCentre';
 import { DIVISIONS, CENTRAL_FUNCTIONS } from '../lib/operating-model';
 
 const nav = [
   ['Overview', '⌂'], ['Divisions', '▦'], ['Central functions', '✳'], ['Tasks', '☷'], ['Legal matters', '§'],
-  ['Contacts', '◎'], ['Business development', '↗'], ['Opportunity Radar', '◈'], ['AI Agents & Tools', '✳'], ['Projects', '▦'], ['Finance', '৳'], ['Content studio', '▣'], ['Ventures', '◇'], ['Documents', '▤'],
+  ['Contacts', '◎'], ['Business development', '↗'], ['IA² Commercial Desk', '⌘'], ['Opportunity Radar', '◈'], ['AI Agents & Tools', '✳'], ['Projects', '▦'], ['Finance', '৳'], ['Content studio', '▣'], ['Ventures', '◇'], ['Documents', '▤'],
 ];
 const dateLabel = value => value ? new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 const priorityLabel = value => ({ urgent: 'Urgent', high: 'High', normal: 'Normal', low: 'Low' }[value] || value);
@@ -199,6 +200,7 @@ export default function Dashboard() {
             <form className="os-form-grid contact-form" onSubmit={addContact}><input value={contactName} onChange={e => setContactName(e.target.value)} placeholder="Full name" required/><input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="Email address"/><input value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="Phone number"/><select value={contactType} onChange={e => setContactType(e.target.value)}><option value="prospect">Prospect</option><option value="client">Client</option><option value="partner">Partner</option><option value="vendor">Vendor</option><option value="investor">Investor</option><option value="other">Other</option></select><button disabled={saving}>{saving ? 'Saving…' : 'Add contact'}</button></form>
             <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Name</th><th>Organisation</th><th>Type</th><th>Email / Phone</th></tr></thead><tbody>{contacts.map(c=><tr key={c.id}><td><b>{c.full_name}</b></td><td>{c.organization_name || '—'}</td><td><span className="os-chip">{c.contact_type}</span></td><td>{c.email || '—'}<small>{c.phone || ''}</small></td></tr>)}</tbody></table>{!contacts.length && <Empty text="No contacts yet. Add the first relationship above."/>}</div></section>}
           {active === 'Ventures' && <section className="os-panel"><PanelTitle title="Venture portfolio" sub="Core business units registered in the IMRAN AI workspace." count={ventures.length + ' ventures'} /><div className="os-venture-grid">{ventures.map(v=><article className="os-venture" key={v.id}><div className="os-venture-top"><span>{v.category || 'Business'}</span><span className="os-chip">{v.status}</span></div><h3>{v.name}</h3><p>{v.description || 'Business unit registered. Operating details and financial metrics are intentionally left blank until verified.'}</p><small>{v.slug}</small></article>)}</div>{!ventures.length && <Empty text="No ventures have been registered yet."/>}</section>}
+          {active === 'IA² Commercial Desk' && <IA2CommercialDesk org={org} supabase={supabase} />}
           {active === 'Opportunity Radar' && <OpportunityRadar org={org} supabase={supabase} />}
           {active === 'AI Agents & Tools' && <AgentControlCentre org={org} supabase={supabase} />}
           {['Projects','Business development','Finance','Content studio'].includes(active) && <ExtendedModules active={active} org={org} supabase={supabase} />}
