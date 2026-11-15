@@ -17,6 +17,7 @@ const statusLabel = value => ({ todo: 'To do', in_progress: 'In progress', block
 
 export default function Dashboard() {
   const [active, setActive] = useState('Overview');
+  const [navSearch, setNavSearch] = useState('');
   const [user, setUser] = useState(null);
   const [org, setOrg] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -135,12 +136,18 @@ export default function Dashboard() {
   const openMatters = matters.filter(m => !['closed', 'archived'].includes(m.status));
   const overdue = tasks.filter(t => t.due_at && new Date(t.due_at) < new Date() && !['done', 'cancelled'].includes(t.status));
   const greeting = new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 17 ? 'Good afternoon' : 'Good evening';
+  const visibleNav = nav.filter(([label]) => label.toLowerCase().includes(navSearch.trim().toLowerCase()));
 
   return <main className="os-shell">
     <aside className="os-sidebar">
       <div className="os-brand"><div className="os-mark">IA</div><div><b>IMRAN AI</b><small>FOUNDER OPERATING SYSTEM</small></div></div>
       <div className="os-workspace-label">WORKSPACE</div>
-      <nav className="os-nav">{nav.map(([label, icon]) => <button key={label} onClick={() => setActive(label)} className={active === label ? 'os-nav-item active' : 'os-nav-item'}><span>{icon}</span>{label}</button>)}</nav>
+      <div style={{padding:'0 14px 12px'}}>
+        <input aria-label="Search workspace navigation" type="search" value={navSearch} onChange={e => setNavSearch(e.target.value)} placeholder="Search modules…" style={{width:'100%',height:38,border:'1px solid var(--os-border, #e4e6df)',borderRadius:8,padding:'0 11px',fontSize:12,background:'var(--os-surface, #fff)',color:'inherit'}} />
+      </div>
+      <nav className="os-nav" aria-label="Workspace modules">{visibleNav.map(([label, icon]) => <button key={label} onClick={() => {setActive(label);setNavSearch('');}} className={active === label ? 'os-nav-item active' : 'os-nav-item'}><span>{icon}</span>{label}</button>)}
+        {!visibleNav.length && <span style={{padding:'10px 16px',fontSize:12,opacity:.65}}>No matching module</span>}
+      </nav>
       <div className="os-sidebar-bottom"><div className="os-avatar">IA</div><div className="os-user"><b>{user?.user_metadata?.full_name || 'Founder'}</b><small>{user?.email || 'Founder account'}</small></div><button className="os-signout" onClick={signOut} title="Sign out">↗</button></div>
     </aside>
     <section className="os-main">
