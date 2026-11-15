@@ -84,9 +84,14 @@ export default function Dashboard() {
   }
 
   async function changeTaskStatus(task, status) {
-    const { error: updateError } = await supabase.from('tasks').update({ status }).eq('id', task.id);
+    if (!org?.id || !task?.id) return;
+    setError(''); setNotice('');
+    const { data: updatedTask, error: updateError } = await supabase.from('tasks')
+      .update({ status }).eq('id', task.id).eq('organization_id', org.id).select('id').maybeSingle();
     if (updateError) { setError(updateError.message); return; }
+    if (!updatedTask) { setError('Task was not updated. It may have been removed or you may no longer have access.'); return; }
     setTasks(items => items.map(item => item.id === task.id ? { ...item, status } : item));
+    setNotice('Task status updated.');
   }
 
   async function addContact(event) {
@@ -216,7 +221,7 @@ function Overview({ tasks, openTasks, overdue, ventures, contacts, openMatters, 
   return <>
     <div className="os-section-head"><div><h2>Executive overview</h2><p>Live records from your operating workspace.</p></div><span className="os-phase">CONNECTED · CORE MODULES</span></div>
     <div className="os-metrics">{metrics.map(([label,value,sub])=><article className="os-metric" key={label}><span>{label}</span><strong>{value}</strong><small>{sub}</small></article>)}</div>
-    <div className="os-overview-grid"><section className="os-panel"><PanelTitle title="Priority desk" sub="Your most recent actions." count={openTasks.length + ' open'}/><TaskList tasks={tasks.slice(0,6)} onStatus={async (task,status)=>{const supabase=createClient();const {error}=await supabase.from('tasks').update({status}).eq('id',task.id);if(!error)window.location.reload();}}/><button className="os-link" onClick={()=>setActive('Tasks')}>Open task desk →</button></section>
+    <div className="os-overview-grid"><section className="os-panel"><PanelTitle title="Priority desk" sub="Your most recent actions." count={openTasks.length + ' open'}/><TaskList tasks={tasks.slice(0,6)} onStatus={changeTaskStatus}/><button className="os-link" onClick={()=>setActive('Tasks')}>Open task desk →</button></section>
       <section className="os-panel"><PanelTitle title="Founder attention" sub="Items that may need immediate review." count={overdue.length + ' overdue'}/><div className="os-attention"><div><b>{overdue.length ? 'Overdue tasks' : 'No overdue tasks'}</b><small>{overdue.length ? 'Review due dates and move blocked work forward.' : 'Your task register has no overdue items.'}</small></div><div><b>{openMatters.length} active legal matters</b><small>Keep court dates and client commitments current.</small></div><div><b>{ventures.length} registered ventures</b><small>Business metrics remain blank until verified.</small></div></div><button className="os-link" onClick={()=>setActive('Legal matters')}>Open legal desk →</button></section></div>
     <div className="os-section-head os-modules-head"><div><h2>Operating modules</h2><p>Navigate directly to live registers.</p></div></div>
     <div className="os-module-grid">{[['Legal matters','§','Confidential matter register'],['Tasks','☷','Daily execution and priorities'],['Contacts','◎','Clients, leads and relationships'],['Ventures','◇','Business unit portfolio'],['Documents','▤','Legal document register']].map(([name,icon,desc])=><button key={name} className="os-module" onClick={()=>setActive(name)}><span>{icon}</span><b>{name}</b><small>{desc}</small><i>↗</i></button>)}</div>
