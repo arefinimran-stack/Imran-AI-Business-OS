@@ -14,6 +14,10 @@ const TYPES = ['legal_regulatory','market','audience','competitor','platform','c
 const STATUSES = ['discovered','triaged','approved','in_progress','converted','dismissed'];
 const selectClass = 'os-radar-select';
 
+function sourceHostname(value) {
+  try { return new URL(value).hostname; } catch { return 'Open source'; }
+}
+
 export default function OpportunityRadar({ org, supabase }) {
   const [items,setItems] = useState([]);
   const [loading,setLoading] = useState(true);
@@ -51,7 +55,7 @@ export default function OpportunityRadar({ org, supabase }) {
     event.preventDefault();
     if (!org?.id || !title.trim()) return;
     setSaving(true); setError(''); setNotice('');
-    const sourceUrls = sources.split(/\\n|,/).map(x=>x.trim()).filter(Boolean);
+    const sourceUrls = sources.split(/\n|,/).map(x=>x.trim()).filter(Boolean);
     const invalid = sourceUrls.find(x=>{try { const u=new URL(x); return !['http:','https:'].includes(u.protocol); } catch { return true; }});
     if (invalid) { setSaving(false); setError('Each source must be a valid http or https URL.'); return; }
     const { error: insertError } = await supabase.from('opportunity_signals').insert({
@@ -115,7 +119,7 @@ export default function OpportunityRadar({ org, supabase }) {
         <small>{item.signal_type.replaceAll('_',' ')} · Evidence: {item.evidence_quality} · Confidence: {item.confidence}</small>
         <small>Commercial potential: {item.commercial_potential} · Effort: {item.estimated_effort}</small>
         {item.recommended_action&&<p><b>Next action:</b> {item.recommended_action}</p>}
-        {!!item.source_urls?.length&&<div className="os-radar-sources"><b>Sources</b>{item.source_urls.map((url,i)=><a key={url+i} href={url} target="_blank" rel="noreferrer">{new URL(url).hostname}</a>)}</div>}
+        {!!item.source_urls?.length&&<div className="os-radar-sources"><b>Sources</b>{item.source_urls.map((url,i)=><a key={url+i} href={url} target="_blank" rel="noreferrer">{sourceHostname(url)}</a>)}</div>}
         <label className="os-radar-status">Workflow stage<select value={item.status} onChange={e=>changeStatus(item,e.target.value)}>{STATUSES.map(s=><option key={s} value={s}>{s.replaceAll('_',' ')}</option>)}</select></label>
       </article>)}
       {!visible.length&&<div className="os-empty">No signals match these filters. Capture the first signal above.</div>}
