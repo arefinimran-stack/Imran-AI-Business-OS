@@ -103,7 +103,7 @@ export default function OpportunityRadar({ org, supabase }) {
         'Hypothesis: ' + (item.hypothesis || 'Not supplied'),
         'Sources: ' + ((item.source_urls || []).join(', ') || 'Not supplied'),
         'Recommended action: ' + (item.recommended_action || 'Review and qualify manually')
-      ].join('\\n');
+      ].join('\n');
       const { error: insertError } = await supabase.from('business_opportunities').insert({
         organization_id: org.id,
         title: item.title,
