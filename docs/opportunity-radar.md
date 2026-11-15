@@ -55,6 +55,10 @@ A signal should be approved only when its evidence and proposed action are propo
 - Do not use another person's face as Imran Arefin. Founder imagery must preserve the approved reference identity.
 - Review all time-sensitive signals before action; archive the source snapshot or stable official reference where possible.
 
+## Research-register linkage
+
+The `public.opportunity_signal_sources` join table links a Radar signal to one or more registered `research_sources` records. Each link is organisation-scoped, unique per signal/source pair, and protected by RLS policies that verify both linked records belong to the same organisation. The Radar form can select existing registered sources; it also retains direct source URLs for quick discovery. A registered source is not automatically verified: source reliability, exact reference and claim-level support remain explicit review tasks.
+
 ## Access model
 
 The table is organisation-scoped. Row Level Security is enabled. Organisation members can read; owner/admin/lawyer/staff can create and update; owner/admin can delete. Anonymous access is revoked. The application UI and authenticated end-to-end tests remain separate implementation gates.
