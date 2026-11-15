@@ -1,14 +1,46 @@
 # IMRAN AI BUSINESS OS
 
-Personal AI Business Operating System for the founder's legal practice, business operations and digital ventures.
+Personal AI Business Operating System for Imran Arefin's legal practice, founder operations and six-division venture ecosystem.
 
 ## Current build
 
-This repository contains the first browser dashboard foundation, built with Next.js. The dashboard provides a responsive founder overview, operating-area navigation, a local task preview and portfolio/workstream entry points.
+The application is a Next.js 15 / React 19 founder workspace using Supabase Auth and a Supabase Postgres database with organisation-scoped Row Level Security.
 
-**Important:** This is a foundation UI, not yet a production business system. Authentication, persistent database records, role permissions, file storage, AI provider integration and live business metrics must be implemented and tested before sensitive client or financial information is entered.
+Current workspace modules include:
+- Founder dashboard and six-division operating model.
+- Tasks, legal matters, contacts, projects, ventures, finance and documents.
+- Business Development pipeline and Opportunity Radar.
+- Content Studio with division-specific formats, genres and editorial metadata.
+- Research desk with source register, claim register, research briefs and brief-to-claim links.
+- Opportunity Radar linked to registered research sources and Business Development conversion.
+- Agent and tool connection registry foundation (seven specialist agent definitions and seven tool records).
 
-## Run locally
+## Agent and tool architecture
+
+IMRAN AI is designed as a governed control plane for specialist agents and connected tools. The database registry and access policies are in place, but the server-side agent execution service, tool dispatcher, model-provider integration and agent run UI are not yet deployed. See [Agent and Tool Orchestration Architecture](docs/ai-agent-and-tool-orchestration.md).
+
+A connector available in ChatGPT is not automatically available to the deployed application. Application integrations require their own server-side credentials, routes, permissions and tests. Never put secrets in browser code, public environment variables, Git or database metadata.
+
+## Research and content standards
+
+- [Opportunity Radar](docs/opportunity-radar.md)
+- [Content Operations](docs/content-operations.md)
+- [Brand Visual System](docs/brand-visual-system.md)
+- [Market Intelligence and Content Genres](docs/market-intelligence-and-content-genres.md)
+- [Research-to-Production Brief Standard](docs/research-to-production-brief-standard.md)
+- [Research Register and Evidence Workflow](docs/research-register-and-evidence-workflow.md)
+
+## Security and operational principles
+
+- Mobile-first, modular and cost-conscious.
+- Organisation-scoped RLS is the data access boundary; never rely on hidden UI controls alone.
+- Do not enter confidential client material until the relevant access, retention, encryption, backup and audit controls have been reviewed and tested.
+- Legal research is not legal advice; primary sources and advocate review are required.
+- Research outputs must distinguish verified facts, interpretation and hypotheses.
+- No public publishing, prospect outreach, legal filing, spending or destructive action without explicit authorised human approval.
+- No fabricated connections, metrics, completed actions or agent capabilities.
+
+## Local development
 
 - Node.js 22+
 - `npm install`
@@ -16,12 +48,6 @@ This repository contains the first browser dashboard foundation, built with Next
 - `npm run build`
 - `npm start` (production server on port 8080)
 
-## Deploy to Fly.io
+## Deployment
 
-The repository includes a production Dockerfile and `fly.toml` for the existing `imran-ai-business-os` Fly app. From this repository root, run `fly deploy` after authenticating with Fly.io.
-
-## Project principles
-
-- Keep IMRAN AI Business OS separate from Arefin Chambers Legal AI.
-- Mobile-first, modular and cost-conscious.
-- Do not store confidential client data until authentication, access control and secure persistence are implemented.
+The current production project is deployed on Vercel and connected to the GitHub repository. Confirm deployment state in Vercel after each commit; a successful deployment does not replace authenticated browser testing.
