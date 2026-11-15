@@ -62,7 +62,7 @@ export default function Dashboard() {
       if (orgError) throw new Error(orgError.message === 'JSON object requested, multiple (or no) rows returned' ? 'Founder workspace access is not active for this account. Sign out and sign in again, or request founder access.' : orgError.message);
       setOrg(orgData);
       const [t, v, c, m, d, p] = await Promise.all([
-        supabase.from('tasks').select('id,title,description,status,priority,due_at,created_at,related_matter_id').eq('organization_id', orgData.id).order('created_at', { ascending: false }).limit(100),
+        supabase.from('tasks').select('id,title,description,status,priority,due_at,created_at,related_matter_id,project_id').eq('organization_id', orgData.id).order('created_at', { ascending: false }).limit(100),
         supabase.from('ventures').select('id,name,slug,category,status,description').eq('organization_id', orgData.id).order('name'),
         supabase.from('contacts').select('id,full_name,organization_name,email,phone,contact_type,created_at').eq('organization_id', orgData.id).order('created_at', { ascending: false }).limit(100),
         supabase.from('legal_matters').select('id,reference_code,title,matter_type,court_or_forum,status,priority,next_hearing_at,confidential').eq('organization_id', orgData.id).order('next_hearing_at', { ascending: true, nullsFirst: false }).limit(100),
