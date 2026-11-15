@@ -18,6 +18,7 @@ const statusLabel = value => ({ todo: 'To do', in_progress: 'In progress', block
 export default function Dashboard() {
   const [active, setActive] = useState('Overview');
   const [navSearch, setNavSearch] = useState('');
+  const [profileOpen, setProfileOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [org, setOrg] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -145,13 +146,13 @@ export default function Dashboard() {
       <div style={{padding:'0 14px 12px'}}>
         <input aria-label="Search workspace navigation" type="search" value={navSearch} onChange={e => setNavSearch(e.target.value)} placeholder="Search modules…" style={{width:'100%',height:38,border:'1px solid var(--os-border, #e4e6df)',borderRadius:8,padding:'0 11px',fontSize:12,background:'var(--os-surface, #fff)',color:'inherit'}} />
       </div>
-      <nav className="os-nav" aria-label="Workspace modules">{visibleNav.map(([label, icon]) => <button key={label} onClick={() => {setActive(label);setNavSearch('');}} className={active === label ? 'os-nav-item active' : 'os-nav-item'}><span>{icon}</span>{label}</button>)}
+      <nav className="os-nav" aria-label="Workspace modules">{visibleNav.map(([label, icon]) => <button key={label} type="button" onClick={() => {setActive(label);setNavSearch('');}} className={active === label ? 'os-nav-item active' : 'os-nav-item'} aria-current={active === label ? 'page' : undefined} title={label}><span aria-hidden="true" style={{pointerEvents:'none'}}>{icon}</span>{label}</button>)}
         {!visibleNav.length && <span style={{padding:'10px 16px',fontSize:12,opacity:.65}}>No matching module</span>}
       </nav>
-      <div className="os-sidebar-bottom"><div className="os-avatar">IA</div><div className="os-user"><b>{user?.user_metadata?.full_name || 'Founder'}</b><small>{user?.email || 'Founder account'}</small></div><button className="os-signout" onClick={signOut} title="Sign out">↗</button></div>
+      <div className="os-sidebar-bottom"><button type="button" className="os-profile-trigger" onClick={() => setProfileOpen(open => !open)} aria-expanded={profileOpen} aria-label="Open founder account details"><div className="os-avatar">IA</div><div className="os-user"><b>{user?.user_metadata?.full_name || 'Founder'}</b><small>{user?.email || 'Founder account'}</small></div></button><button type="button" className="os-signout" onClick={signOut} title="Sign out" aria-label="Sign out">↗</button>{profileOpen && <div className="os-profile-menu" role="group" aria-label="Founder account details"><b>Founder account</b><span>{user?.email || 'Account email unavailable'}</span><small>Signed in to the private workspace</small><button type="button" onClick={() => setProfileOpen(false)}>Close</button></div>}</div>
     </aside>
     <section className="os-main">
-      <header className="os-topbar"><div className="os-crumb">IMRAN AI <span>/</span> <b>{active}</b></div><div className="os-top-right"><span className="os-live"><i/> Connected workspace</span><button className="os-refresh" onClick={load}>↻ Refresh</button></div></header>
+      <header className="os-topbar"><div className="os-crumb">IMRAN AI <span>/</span> <b>{active}</b></div><div className="os-top-right"><span className="os-live"><i/> Connected workspace</span><button type="button" className="os-refresh" onClick={load} disabled={loading} title="Reload live workspace records from Supabase" aria-label="Refresh workspace data">↻ {loading ? 'Refreshing…' : 'Refresh data'}</button></div></header>
       <div className="os-content">
         <div className="os-eyebrow">{new Date().toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase()} <span>•</span> PRIVATE FOUNDER WORKSPACE</div>
         <div className="os-hero"><div><h1>{greeting}, Imran.</h1><p>Your work, legal practice and ventures — connected in one place.</p></div><div className="os-hero-note">ONE INTELLIGENCE. MULTIPLE BUSINESSES.</div></div>
