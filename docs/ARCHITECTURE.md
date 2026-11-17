@@ -28,7 +28,7 @@
      ┌──────────┴──────────┐
      │  AI provider layer  │  lib/ai/provider.ts (provider-independent)
      │  NVIDIA NIM / OpenAI│  app/api/ai (server) + local planner
-     │  provider swappable │  fallback (works with no key)
+     │  provider swappable │  NVIDIA→OpenAI runtime fallback in auto mode
      └─────────────────────┘
 ```
 
@@ -40,10 +40,19 @@ Automation, Developer). The planner (`lib/agents/planner.ts`) maps natural
 language instructions to departments and workflow plans. Agents delegate by
 executing workflow steps; every step is attributed to an agent in the run log.
 
-With `NVIDIA_API_KEY` configured (and `AI_PROVIDER=auto` or `nvidia`), the Command Centre uses NVIDIA NIM / Nemotron. If no NVIDIA key is present, `auto` falls back to OpenAI when `OPENAI_API_KEY` is configured. With an `OPENAI_API_KEY` configured, the Command Centre answers generatively
-through `app/api/ai` (system prompt encodes the ecosystem context). The NVIDIA adapter uses the OpenAI-compatible `https://integrate.api.nvidia.com/v1/chat/completions` endpoint; the default model is `nvidia/nemotron-3.5-super-vl-120b-a12b`, overridable with `NVIDIA_MODEL`. Keys are server-only environment variables. Without a
-key, the deterministic planner answers and proposes workflows — clearly
-labelled in the UI. No fake functionality is presented as AI generation.
+With `NVIDIA_API_KEY` configured and `AI_PROVIDER=auto` (default), the
+Command Centre tries NVIDIA NIM / Nemotron first. If NVIDIA inference fails
+and `OPENAI_API_KEY` is also configured, the request is retried with OpenAI;
+the response status identifies the fallback provider. Explicit `nvidia` and
+`openai` modes do not switch providers. If only one provider key is set,
+`auto` uses that provider. With no provider key, the deterministic planner
+answers and proposes workflows — clearly labelled in the UI.
+
+The NVIDIA adapter uses the OpenAI-compatible
+`https://integrate.api.nvidia.com/v1/chat/completions` endpoint; the default
+model is `nvidia/nemotron-3.5-super-vl-120b-a12b`, overridable with
+`NVIDIA_MODEL`. Keys are server-only environment variables. Provider errors
+returned to the client are generic and do not expose upstream response bodies.
 
 ## Workflow engine / Autopilot (Completed — local runtime; Partial — 24/7 server runtime)
 
@@ -81,7 +90,7 @@ Supabase does not touch UI code.
 ## Generation Studio (Completed — documents & graphics; Planned — video/audio/music)
 
 `app/studio` generates real files client-side with zero dependencies:
-- AI Writer: provider-backed via `app/api/ai` when `OPENAI_API_KEY` is set, otherwise structured template drafts — the source (AI vs template) is always labelled.
+- AI Writer: provider-backed via `app/api/ai` when an AI provider credential is configured, otherwise structured template drafts — the source (AI vs template) is always labelled.
 - Social graphics: deterministic branded SVG (navy/gold) with PNG export via canvas.
 - Documents: dependency-free PDF writer (`lib/studio/generators.ts`, Latin script — documented limitation), Word-compatible HTML `.doc`, CSV.
 - Creation library: every artifact is saved to the store and re-downloadable.
