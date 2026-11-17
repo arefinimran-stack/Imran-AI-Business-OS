@@ -61,6 +61,8 @@ export default function ExtendedModules({ active, org, supabase }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('normal');
+  const [projectTargetDate, setProjectTargetDate] = useState('');
+  const [projectSuccessMeasure, setProjectSuccessMeasure] = useState('');
   const [stage, setStage] = useState('new');
   const [value, setValue] = useState('');
   const [currency, setCurrency] = useState('BDT');
@@ -86,7 +88,7 @@ export default function ExtendedModules({ active, org, supabase }) {
   const [search, setSearch] = useState('');
 
   const config = {
-    Projects: { table: 'projects', select: 'id,name,description,status,priority,target_date,created_at', order: 'created_at' },
+    Projects: { table: 'projects', select: 'id,name,description,status,priority,target_date,success_measure,created_at', order: 'created_at' },
     'Business development': { table: 'business_opportunities', select: 'id,title,stage,estimated_value,currency,next_follow_up_at,notes,created_at', order: 'next_follow_up_at' },
     Finance: { table: 'finance_entries', select: 'id,entry_type,description,amount,currency,category,transaction_date,status,created_at', order: 'transaction_date' },
     'Content studio': { table: 'content_items', select: 'id,title,platforms,format,status,scheduled_at,script,published_url,reach,engagement,leads,revenue,currency,created_at,brand_key,venture_id,content_pillar,language,review_status,source_platform,external_post_id,external_permalink,thumbnail_url,published_at,source_notes,metadata', order: 'created_at' },
@@ -135,7 +137,7 @@ export default function ExtendedModules({ active, org, supabase }) {
     event.preventDefault(); if (!org) return;
     setSaving(true); setError(''); setNotice('');
     let payload;
-    if (active === 'Projects') payload = { organization_id: org.id, name: name.trim(), description: description.trim() || null, priority, status: 'planning' };
+    if (active === 'Projects') payload = { organization_id: org.id, name: name.trim(), description: description.trim() || null, priority, status: 'planning', target_date: projectTargetDate || null, success_measure: projectSuccessMeasure.trim() || null };
     if (active === 'Business development') payload = { organization_id: org.id, title: name.trim(), stage, estimated_value: value ? Number(value) : null, currency, notes: description.trim() || null };
     if (active === 'Finance') payload = { organization_id: org.id, entry_type: entryType, description: name.trim(), amount: Number(value), currency, category: category.trim() || null, status: 'confirmed' };
     if (active === 'Content studio') {
@@ -163,7 +165,7 @@ export default function ExtendedModules({ active, org, supabase }) {
     const { error: insertError } = await supabase.from(config.table).insert(payload);
     setSaving(false);
     if (insertError) { setError(insertError.message); return; }
-    setName(''); setDescription(''); setValue(''); setCategory(''); setScheduledAt(''); setPublishedUrl(''); setAudienceSegment(''); setEditorialAngle(''); setResearchStatus('needs_research'); setSourceNotes(''); setVisualDirection(''); setPlatformAdaptations(''); setFactCheckNotes('');
+    setName(''); setDescription(''); setValue(''); setCategory(''); setProjectTargetDate(''); setProjectSuccessMeasure(''); setScheduledAt(''); setPublishedUrl(''); setAudienceSegment(''); setEditorialAngle(''); setResearchStatus('needs_research'); setSourceNotes(''); setVisualDirection(''); setPlatformAdaptations(''); setFactCheckNotes('');
     setNotice(active === 'Content studio' ? 'Content idea saved to the central editorial calendar.' : active + ' record saved.');
     await load();
   }
@@ -296,7 +298,7 @@ export default function ExtendedModules({ active, org, supabase }) {
     </>}
     <form className="os-form-grid os-extended-form" onSubmit={save}>
       <input value={name} onChange={e=>setName(e.target.value)} placeholder={active === 'Projects' ? 'Project name' : active === 'Business development' ? 'Opportunity title' : active === 'Finance' ? 'Transaction description' : 'Content title / topic'} required/>
-      {active === 'Projects' && <select value={priority} onChange={e=>setPriority(e.target.value)}><option value="normal">Normal priority</option><option value="high">High priority</option><option value="urgent">Urgent priority</option><option value="low">Low priority</option></select>}
+      {active === 'Projects' && <><select value={priority} onChange={e=>setPriority(e.target.value)}><option value="normal">Normal priority</option><option value="high">High priority</option><option value="urgent">Urgent priority</option><option value="low">Low priority</option></select><input type="date" value={projectTargetDate} onChange={e=>setProjectTargetDate(e.target.value)} aria-label="Project target date (optional)"/><input value={projectSuccessMeasure} onChange={e=>setProjectSuccessMeasure(e.target.value)} placeholder="Success measure / acceptance outcome (optional)"/></>}
       {active === 'Business development' && <><select value={stage} onChange={e=>setStage(e.target.value)}><option value="new">New</option><option value="qualified">Qualified</option><option value="proposal">Proposal</option><option value="negotiation">Negotiation</option><option value="won">Won</option><option value="lost">Lost</option></select><input type="number" min="0" step="0.01" value={value} onChange={e=>setValue(e.target.value)} placeholder="Estimated value (optional)"/><select value={currency} onChange={e=>setCurrency(e.target.value)}><option>BDT</option><option>USD</option><option>GBP</option><option>EUR</option><option>Other</option></select></>}
       {active === 'Finance' && <><select value={entryType} onChange={e=>setEntryType(e.target.value)}><option value="income">Income</option><option value="expense">Expense</option></select><input type="number" min="0.01" step="0.01" value={value} onChange={e=>setValue(e.target.value)} placeholder="Amount" required/><select value={currency} onChange={e=>setCurrency(e.target.value)}><option>BDT</option><option>USD</option><option>GBP</option><option>EUR</option><option>Other</option></select><input value={category} onChange={e=>setCategory(e.target.value)} placeholder="Category (optional)"/></>}
       {active === 'Content studio' && <>
@@ -325,7 +327,7 @@ export default function ExtendedModules({ active, org, supabase }) {
         <select value={brandFilter} onChange={e=>setBrandFilter(e.target.value)}><option value="all">All brands</option>{BRAND_OPTIONS.map(b=><option key={b.key} value={b.key}>{b.label}</option>)}<option value="historical-social-import">Historical archive</option></select>
         <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}><option value="all">All statuses</option>{['idea','draft','review','approved','scheduled','published','archived'].map(s=><option key={s}>{s}</option>)}</select>
       </div>}
-      {active === 'Projects' && <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Project</th><th>Priority</th><th>Status</th><th>Target date</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td><b>{r.name}</b><small>{r.description || ''}</small></td><td>{r.priority}</td><td><select value={r.status} onChange={e=>updateRow(r,'status',e.target.value)}><option value="planning">Planning</option><option value="active">Active</option><option value="on_hold">On hold</option><option value="completed">Completed</option><option value="archived">Archived</option></select></td><td>{dateText(r.target_date)}</td></tr>)}</tbody></table>{!rows.length && <Empty text="No projects yet. Add the first project above."/>}</div>}
+      {active === 'Projects' && <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Project</th><th>Priority</th><th>Status</th><th>Target date</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td><b>{r.name}</b><small>{r.description || ''}</small><small>{r.success_measure || 'Success measure not defined'}</small></td><td>{r.priority}</td><td><select value={r.status} onChange={e=>updateRow(r,'status',e.target.value)}><option value="planning">Planning</option><option value="active">Active</option><option value="on_hold">On hold</option><option value="completed">Completed</option><option value="archived">Archived</option></select></td><td>{dateText(r.target_date)}</td></tr>)}</tbody></table>{!rows.length && <Empty text="No projects yet. Add the first project above."/>}</div>}
       {active === 'Business development' && <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Opportunity</th><th>Stage</th><th>Estimated value</th><th>Next follow-up</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td><b>{r.title}</b><small>{r.notes || ''}</small></td><td><select value={r.stage} onChange={e=>updateRow(r,'stage',e.target.value)}><option value="new">New</option><option value="qualified">Qualified</option><option value="proposal">Proposal</option><option value="negotiation">Negotiation</option><option value="won">Won</option><option value="lost">Lost</option></select></td><td>{r.estimated_value == null ? '—' : money(r.estimated_value,r.currency)}</td><td>{dateText(r.next_follow_up_at)}</td></tr>)}</tbody></table>{!rows.length && <Empty text="No opportunities yet. Add a lead or opportunity above."/>}</div>}
       {active === 'Finance' && <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Category</th><th>Amount</th><th>Status</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{dateText(r.transaction_date)}</td><td><span className="os-chip">{r.entry_type}</span></td><td><b>{r.description}</b></td><td>{r.category || '—'}</td><td>{money(r.amount,r.currency)}</td><td>{r.status}</td></tr>)}</tbody></table>{!rows.length && <Empty text="No finance entries yet. Add verified income or expense records above."/>}</div>}
       {active === 'Content studio' && <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Editorial item</th><th>Brand / genre</th><th>Channels</th><th>Review</th><th>Workflow</th><th>Schedule / published</th><th>Action</th></tr></thead><tbody>{visibleRows.map(r=><tr key={r.id}>
