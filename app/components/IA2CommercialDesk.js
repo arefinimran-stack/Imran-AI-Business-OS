@@ -170,7 +170,7 @@ export default function IA2CommercialDesk({ org, supabase }) {
       await load(); return;
     }
     const existingOpportunity = (relatedOpportunities || []).find(item =>
-      String(item.notes || '').includes(manualMarker) || String(item.notes || '').includes('IA² buyer lead')
+      String(item.notes || '').includes(manualMarker) || String(item.notes || '').includes('IA² buyer lead') || String(item.notes || '').includes('IA² research batch 01')
     );
     if (!existingOpportunity) {
       const opportunityNotes = [
@@ -246,6 +246,7 @@ export default function IA2CommercialDesk({ org, supabase }) {
     }
     const existingOpp = (relatedOpportunities || []).find(item =>
       String(item.notes || '').includes(marker) ||
+      String(item.notes || '').includes('IA² buyer lead') ||
       (String(item.notes || '').includes('IA² research batch 01') && companyKey(item.title).includes(companyKey(seed.company)))
     );
     if (!existingOpp) {
