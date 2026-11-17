@@ -13,6 +13,7 @@ This repository contains the mobile-first founder dashboard, department workspac
 The server-side AI adapter supports:
 - NVIDIA NIM / Nemotron through the OpenAI-compatible Chat Completions endpoint.
 - OpenAI as an alternative provider.
+- Runtime NVIDIA-to-OpenAI fallback in `auto` mode when both credentials are configured and NVIDIA inference fails.
 - The local deterministic planner when no provider credential is configured.
 
 Configure these environment variables in the hosting platform (never in client-side code):
@@ -21,8 +22,10 @@ Configure these environment variables in the hosting platform (never in client-s
 | --- | --- |
 | `NVIDIA_API_KEY` | Encrypted NVIDIA API key from NVIDIA Build |
 | `NVIDIA_MODEL` | Optional model override; defaults to `nvidia/nemotron-3.5-super-vl-120b-a12b` |
-| `AI_PROVIDER` | `nvidia`, `openai`, or `auto`; auto prefers NVIDIA when configured |
-| `OPENAI_API_KEY` | Optional OpenAI fallback credential |
+| `AI_PROVIDER` | `nvidia`, `openai`, or `auto`; auto prefers NVIDIA and retries with OpenAI if NVIDIA fails |
+| `OPENAI_API_KEY` | Optional OpenAI primary or fallback credential |
+
+In `auto` mode, NVIDIA is preferred when configured. If NVIDIA returns an inference error and an OpenAI key is configured, the request is retried with OpenAI. Explicit `nvidia` and `openai` modes do not silently switch providers.
 
 NVIDIA NIM endpoint: `https://integrate.api.nvidia.com/v1/chat/completions`.
 
@@ -35,6 +38,7 @@ The API key must be stored as an encrypted server-side environment variable in V
 - Node.js 22+
 - `npm install`
 - `npm run dev`
+- `npm test`
 - `npm run build`
 
 ## Deploy
