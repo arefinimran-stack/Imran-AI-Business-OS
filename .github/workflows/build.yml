@@ -46,4 +46,4 @@ jobs:
       - name: Test intake policy helpers
         run: deno test supabase/functions/orchestrator-intake/policy_test.ts
       - name: Type-check intake Edge Function
-        run: deno check supabase/functions/orchestrator-intake/index.ts
+        run: deno check --node-modules-dir=none supabase/functions/orchestrator-intake/index.ts
