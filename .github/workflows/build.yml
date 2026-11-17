@@ -35,3 +35,15 @@ jobs:
           node-version: 22
       - run: npm install --no-audit --no-fund
       - run: npm run typecheck
+
+  orchestrator-intake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Test intake policy helpers
+        run: deno test supabase/functions/orchestrator-intake/policy_test.ts
+      - name: Type-check intake Edge Function
+        run: deno check supabase/functions/orchestrator-intake/index.ts
