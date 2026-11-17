@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ content, providerStatus: status });
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "AI provider request failed" },
+      { error: "AI provider request failed. Check server configuration and provider availability." },
       { status: 502 }
     );
   }
