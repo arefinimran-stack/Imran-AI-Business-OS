@@ -19,8 +19,28 @@ const SEED_PROSPECTS = [
 
 
 function readMeta(notes) {
-  if (!notes || !notes.includes(META_MARKER)) return {};
-  try { return JSON.parse(notes.split(META_MARKER)[1].split('\n\n')[0]); } catch { return {}; }
+  const lines = String(notes || '').split(/\r?\n/);
+  for (let i = 0; i < lines.length - 1; i += 1) {
+    if (lines[i].trim() !== META_MARKER) continue;
+    try {
+      const parsed = JSON.parse(lines[i + 1]);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+    } catch { /* Ignore malformed or legacy metadata and continue looking. */ }
+  }
+  return {};
+}
+function writeMeta(notes, meta) {
+  const lines = String(notes || '').split(/\r?\n/);
+  const preserved = [];
+  for (let i = 0; i < lines.length; i += 1) {
+    if (lines[i].trim() === META_MARKER) { i += 1; continue; }
+    preserved.push(lines[i]);
+  }
+  const existingNotes = preserved.join('\n').trim();
+  return META_MARKER + '\n' + JSON.stringify(meta) + (existingNotes ? '\n\n' + existingNotes : '');
+}
+function companyKey(value) {
+  return String(value || '').normalize('NFKC').trim().replace(/\s+/g, ' ').toLocaleLowerCase();
 }
 function money(value, currency) {
   if (value == null || value === '') return 'Not estimated';
@@ -90,7 +110,7 @@ export default function IA2CommercialDesk({ org, supabase }) {
 
   async function addBuyer(event) {
     event.preventDefault();
-    if (!org || !org.id || !company.trim()) return;
+    if (!org || !org.id || !company.trim() || saving) return;
     setSaving(true); setError(''); setNotice('');
     let parsedEvidence = null;
     if (evidenceUrl.trim()) {
@@ -103,82 +123,166 @@ export default function IA2CommercialDesk({ org, supabase }) {
       }
     }
     const meta = {
-      schema: 'ia2-buyer-v1',
-      country: country.trim() || null,
-      website: website.trim() || null,
-      buyer_type: buyerType,
-      product_focus: product,
-      verification_grade: grade,
-      bangladesh_intent: intent.trim() || null,
-      evidence_url: parsedEvidence,
+      schema: 'ia2-buyer-v1', country: country.trim() || null, website: website.trim() || null,
+      buyer_type: buyerType, product_focus: product, verification_grade: grade,
+      bangladesh_intent: intent.trim() || null, evidence_url: parsedEvidence,
       evidence_summary: evidenceSummary.trim() || null,
       contact_source: 'Founder-entered / public business source; verify before outreach',
       outreach_status: 'not_contacted',
     };
-    const contactNotes = META_MARKER + '\n' + JSON.stringify(meta) + '\n\n' + (notes.trim() || 'International buyer / market-entry prospect.');
-    const { data: contact, error: contactError } = await supabase.from('contacts').insert({
-      organization_id: org.id,
-      full_name: person.trim() || 'Procurement / Business Development Team',
-      organization_name: company.trim(),
-      email: email.trim() || null,
-      phone: phone.trim() || null,
-      contact_type: 'prospect',
-      notes: contactNotes,
-    }).select('id').single();
-    if (contactError) { setSaving(false); setError(contactError.message); return; }
-    const { error: oppError } = await supabase.from('business_opportunities').insert({
-      organization_id: org.id,
-      title: opportunityTitle.trim() || (company.trim() + ' — Bangladesh buyer / market-entry opportunity'),
-      contact_id: contact.id,
-      stage: 'new',
-      estimated_value: value ? Number(value) : null,
-      currency: currency,
-      next_follow_up_at: followUp ? new Date(followUp + 'T09:00:00').toISOString() : null,
-      notes: 'IA² buyer lead · ' + grade + '\nProduct focus: ' + product + '\nBangladesh intent: ' + (intent.trim() || 'Not yet verified') + '\nEvidence: ' + (parsedEvidence || 'Not supplied') + '\nEvidence summary: ' + (evidenceSummary.trim() || 'Not supplied') + '\nNo outreach sent. Founder approval required.',
-    });
-    setSaving(false);
-    if (oppError) {
-      setError('Contact saved, but opportunity creation failed: ' + oppError.message + '. Refresh before retrying to avoid duplicates.');
+    const { data: matches, error: lookupError } = await supabase.from('contacts')
+      .select('id,notes,organization_name').eq('organization_id', org.id)
+      .ilike('organization_name', company.trim()).limit(10);
+    if (lookupError) { setSaving(false); setError('Could not check for an existing company contact: ' + lookupError.message); return; }
+    const existingContact = (matches || []).find(item => companyKey(item.organization_name) === companyKey(company));
+    let contactId;
+    if (existingContact) {
+      const mergedMeta = { ...readMeta(existingContact.notes), ...meta };
+      const { data: updatedContact, error: contactUpdateError } = await supabase.from('contacts')
+        .update({ notes: writeMeta(existingContact.notes, mergedMeta) })
+        .eq('id', existingContact.id).eq('organization_id', org.id).select('id').maybeSingle();
+      if (contactUpdateError || !updatedContact) {
+        setSaving(false);
+        setError(contactUpdateError ? contactUpdateError.message : 'Existing contact was not updated; check workspace access and retry.');
+        return;
+      }
+      contactId = updatedContact.id;
+    } else {
+      const contactNotes = writeMeta(notes.trim(), meta);
+      const { data: contact, error: contactError } = await supabase.from('contacts').insert({
+        organization_id: org.id, full_name: person.trim() || 'Procurement / Business Development Team',
+        organization_name: company.trim(), email: email.trim() || null, phone: phone.trim() || null,
+        contact_type: 'prospect', notes: contactNotes,
+      }).select('id').single();
+      if (contactError) { setSaving(false); setError(contactError.message); return; }
+      contactId = contact.id;
+    }
+    const manualKey = companyKey(company).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'prospect';
+    const manualMarker = '[IA2_MANUAL:' + manualKey + ']';
+    const { data: relatedOpportunities, error: opportunityLookupError } = await supabase.from('business_opportunities')
+      .select('id,title,notes').eq('organization_id', org.id).eq('contact_id', contactId).limit(100);
+    if (opportunityLookupError) {
+      setSaving(false);
+      setError('Contact is saved, but linked opportunities could not be checked: ' + opportunityLookupError.message + '. Retry after refreshing; the contact will be reused.');
       await load(); return;
     }
-    setCompany(''); setPerson(''); setCountry(''); setWebsite(''); setEmail(''); setPhone(''); setIntent(''); setEvidenceUrl(''); setEvidenceSummary(''); setOpportunityTitle(''); setValue(''); setFollowUp(''); setNotes('');
-    setNotice('Buyer prospect and linked opportunity saved. No external message was sent.');
+    const existingOpportunity = (relatedOpportunities || []).find(item =>
+      String(item.notes || '').includes(manualMarker) || String(item.notes || '').includes('IA² buyer lead')
+    );
+    if (!existingOpportunity) {
+      const opportunityNotes = [
+        manualMarker, 'IA² buyer lead · ' + grade, 'Product focus: ' + product,
+        'Bangladesh intent: ' + (intent.trim() || 'Not yet verified'),
+        'Evidence: ' + (parsedEvidence || 'Not supplied'),
+        'Evidence summary: ' + (evidenceSummary.trim() || 'Not supplied'),
+        'No outreach sent. Founder approval required.',
+      ].join('\n');
+      const { error: oppError } = await supabase.from('business_opportunities').insert({
+        organization_id: org.id,
+        title: opportunityTitle.trim() || (company.trim() + ' — Bangladesh buyer / market-entry opportunity'),
+        contact_id: contactId, stage: 'new', estimated_value: value.trim() ? Number(value) : null,
+        currency, next_follow_up_at: followUp ? new Date(followUp + 'T09:00:00').toISOString() : null,
+        notes: opportunityNotes,
+      });
+      if (oppError) {
+        setSaving(false);
+        setError('Contact is saved, but opportunity creation failed: ' + oppError.message + '. Retry safely; the existing contact will be reused and duplicate opportunities checked.');
+        await load(); return;
+      }
+    }
+    setSaving(false);
+    setCompany(''); setPerson(''); setCountry(''); setWebsite(''); setEmail(''); setPhone('');
+    setIntent(''); setEvidenceUrl(''); setEvidenceSummary(''); setOpportunityTitle('');
+    setValue(''); setFollowUp(''); setNotes('');
+    setNotice(existingOpportunity ? 'Existing buyer contact and opportunity retained; no duplicate was created.' : 'Buyer prospect and linked opportunity saved. No external message was sent.');
     await load();
   }
 
-
   async function importSeedLead(seed) {
-    if (!org || !org.id) return;
+    if (!org || !org.id || saving) return;
     setSaving(true); setError(''); setNotice('');
-    const { data: found, error: lookupError } = await supabase.from('contacts').select('id,notes').eq('organization_id', org.id).ilike('organization_name', seed.company).limit(1);
+    const { data: matches, error: lookupError } = await supabase.from('contacts')
+      .select('id,notes,organization_name').eq('organization_id', org.id)
+      .ilike('organization_name', seed.company).limit(10);
     if (lookupError) { setSaving(false); setError(lookupError.message); return; }
-    let contactId = found && found[0] ? found[0].id : null;
-    const meta = { schema:'ia2-buyer-v1', country:seed.country, website:seed.website, buyer_type:seed.buyerType, product_focus:seed.product, verification_grade:seed.grade, bangladesh_intent:seed.intent, evidence_url:seed.evidenceUrl, evidence_summary:seed.evidenceSummary, contact_source:'Public research; manually verify procurement contact', outreach_status:'not_contacted' };
-    if (!contactId) {
-      const { data: created, error: contactError } = await supabase.from('contacts').insert({ organization_id:org.id, full_name:'Procurement / Business Development Team', organization_name:seed.company, contact_type:'prospect', notes:META_MARKER+'\n'+JSON.stringify(meta)+'\n\nImported from IA² Japan buyer research batch 01.' }).select('id').single();
+    const existingContact = (matches || []).find(item => companyKey(item.organization_name) === companyKey(seed.company));
+    const meta = {
+      schema:'ia2-buyer-v1', country:seed.country, website:seed.website, buyer_type:seed.buyerType,
+      product_focus:seed.product, verification_grade:seed.grade, bangladesh_intent:seed.intent,
+      evidence_url:seed.evidenceUrl, evidence_summary:seed.evidenceSummary,
+      contact_source:'Public research; manually verify procurement contact', outreach_status:'not_contacted',
+    };
+    let contactId;
+    if (existingContact) {
+      const mergedMeta = { ...readMeta(existingContact.notes), ...meta };
+      const { data: updatedContact, error: contactUpdateError } = await supabase.from('contacts')
+        .update({ notes: writeMeta(existingContact.notes, mergedMeta) })
+        .eq('id', existingContact.id).eq('organization_id', org.id).select('id').maybeSingle();
+      if (contactUpdateError || !updatedContact) {
+        setSaving(false);
+        setError(contactUpdateError ? contactUpdateError.message : 'Existing contact was not updated; check workspace access and retry.');
+        return;
+      }
+      contactId = updatedContact.id;
+    } else {
+      const { data: created, error: contactError } = await supabase.from('contacts').insert({
+        organization_id:org.id, full_name:'Procurement / Business Development Team',
+        organization_name:seed.company, contact_type:'prospect',
+        notes:writeMeta('Imported from IA² Japan buyer research batch 01.', meta),
+      }).select('id').single();
       if (contactError) { setSaving(false); setError(contactError.message); return; }
       contactId = created.id;
-    } else if (!(found[0].notes || '').includes(META_MARKER)) {
-      const prior = found[0].notes || '';
-      const { error: noteError } = await supabase.from('contacts').update({ notes:META_MARKER+'\n'+JSON.stringify(meta)+'\n\n'+prior }).eq('id', contactId).eq('organization_id', org.id);
-      if (noteError) { setSaving(false); setError(noteError.message); return; }
     }
     const marker = '[IA2_SEED:'+seed.key+']';
-    const { data: existingOpp, error: oppLookupError } = await supabase.from('business_opportunities').select('id').eq('organization_id',org.id).eq('contact_id',contactId).ilike('notes','%'+marker+'%').limit(1);
-    if (oppLookupError) { setSaving(false); setError(oppLookupError.message); return; }
-    if (!(existingOpp || []).length) {
-      const { data: ventureRows } = await supabase.from('ventures').select('id').eq('organization_id',org.id).eq('slug','ia2-holdings').limit(1);
-      const oppNotes = marker+'\nIA² research batch 01 · '+seed.grade+'\nProduct focus: '+seed.product+'\nBangladesh intent: '+seed.intent+'\nOfficial company profile: '+seed.website+'\nEvidence: '+seed.evidenceUrl+'\nEvidence summary: '+seed.evidenceSummary+'\nNo outreach sent. Founder approval required.';
-      const { error: oppError } = await supabase.from('business_opportunities').insert({ organization_id:org.id, title:seed.company+' — Bangladesh apparel sourcing / market-entry prospect', contact_id:contactId, venture_id:ventureRows && ventureRows[0] ? ventureRows[0].id : null, stage:'new', currency:'USD', notes:oppNotes });
-      if (oppError) { setSaving(false); setError(oppError.message); await load(); return; }
+    const { data: relatedOpportunities, error: oppLookupError } = await supabase.from('business_opportunities')
+      .select('id,title,notes').eq('organization_id',org.id).eq('contact_id',contactId).limit(100);
+    if (oppLookupError) {
+      setSaving(false);
+      setError('Contact is saved, but the opportunity could not be checked: ' + oppLookupError.message + '. Retry safely; the contact will be reused.');
+      await load(); return;
     }
-    setSaving(false); setNotice(existingOpp && existingOpp.length ? seed.company+' is already in the IA² pipeline.' : seed.company+' added to the IA² buyer CRM. No outreach was sent.');
+    const existingOpp = (relatedOpportunities || []).find(item =>
+      String(item.notes || '').includes(marker) ||
+      (String(item.notes || '').includes('IA² research batch 01') && companyKey(item.title).includes(companyKey(seed.company)))
+    );
+    if (!existingOpp) {
+      const { data: ventureRows, error: ventureError } = await supabase.from('ventures')
+        .select('id').eq('organization_id',org.id).eq('slug','ia2-holdings').limit(1);
+      if (ventureError) {
+        setSaving(false);
+        setError('Contact is saved, but the IA² venture link could not be checked: ' + ventureError.message + '. Retry safely.');
+        await load(); return;
+      }
+      const oppNotes = [
+        marker, 'IA² research batch 01 · '+seed.grade, 'Product focus: '+seed.product,
+        'Bangladesh intent: '+seed.intent, 'Official company profile: '+seed.website,
+        'Evidence: '+seed.evidenceUrl, 'Evidence summary: '+seed.evidenceSummary,
+        'No outreach sent. Founder approval required.',
+      ].join('\n');
+      const { error: oppError } = await supabase.from('business_opportunities').insert({
+        organization_id:org.id, title:seed.company+' — Bangladesh apparel sourcing / market-entry prospect',
+        contact_id:contactId, venture_id:ventureRows && ventureRows[0] ? ventureRows[0].id : null,
+        stage:'new', currency:'USD', notes:oppNotes,
+      });
+      if (oppError) {
+        setSaving(false);
+        setError('Contact is saved, but opportunity creation failed: ' + oppError.message + '. Retry this prospect; the contact will be reused and duplicate opportunities checked.');
+        await load(); return;
+      }
+    }
+    setSaving(false);
+    setNotice(existingOpp ? seed.company+' is already in the IA² pipeline; no duplicate was created.' : seed.company+' added to the IA² buyer CRM. No outreach was sent.');
     await load();
   }
 
   async function updateStage(item, nextStage) {
-    const { error: updateError } = await supabase.from('business_opportunities').update({ stage: nextStage }).eq('id', item.id).eq('organization_id', org.id);
+    if (!org || !org.id || !item || !item.id) return;
+    setError(''); setNotice('');
+    const { data: updated, error: updateError } = await supabase.from('business_opportunities')
+      .update({ stage: nextStage }).eq('id', item.id).eq('organization_id', org.id)
+      .select('id').maybeSingle();
     if (updateError) { setError(updateError.message); return; }
+    if (!updated) { setError('Opportunity was not updated. It may have been removed or access has changed.'); return; }
     setOpportunities(current => current.map(x => x.id === item.id ? { ...x, stage: nextStage } : x));
     setNotice('Opportunity stage updated.');
   }
