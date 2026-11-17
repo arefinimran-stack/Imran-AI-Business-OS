@@ -10,6 +10,7 @@ export function readQuotaDecision(value: unknown): QuotaDecision | null {
 
   const candidate = row as Record<string, unknown>;
   if (typeof candidate.allowed !== "boolean") return null;
+  if (candidate.retry_after_seconds == null || candidate.remaining_requests == null) return null;
 
   const retry = Number(candidate.retry_after_seconds);
   const remaining = Number(candidate.remaining_requests);
