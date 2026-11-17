@@ -33,7 +33,10 @@ function writeMeta(notes, meta) {
   const lines = String(notes || '').split(/\r?\n/);
   const preserved = [];
   for (let i = 0; i < lines.length; i += 1) {
-    if (lines[i].trim() === META_MARKER) { i += 1; continue; }
+    if (lines[i].trim() === META_MARKER) {
+      if (lines[i + 1] && lines[i + 1].trim().startsWith('{')) i += 1;
+      continue;
+    }
     preserved.push(lines[i]);
   }
   const existingNotes = preserved.join('\n').trim();
