@@ -1,4 +1,5 @@
 -- Durable per-user/per-organisation intake quota.
+-- The limit is fixed in the database function; callers cannot raise their own quota.
 -- This migration is review-only until explicitly approved and applied to Supabase.
 create table if not exists public.ai_orchestration_intake_limits (
   organization_id uuid not null references public.organizations(id) on delete cascade,
@@ -13,9 +14,7 @@ alter table public.ai_orchestration_intake_limits enable row level security;
 revoke all on table public.ai_orchestration_intake_limits from public, anon, authenticated;
 
 create or replace function public.consume_ai_orchestration_intake_quota(
-  p_organization_id uuid,
-  p_window_seconds integer default 300,
-  p_max_requests integer default 10
+  p_organization_id uuid
 )
 returns table (
   allowed boolean,
@@ -29,6 +28,8 @@ as $function$
 declare
   v_user_id uuid := auth.uid();
   v_now timestamptz := now();
+  v_window_seconds constant integer := 300;
+  v_max_requests constant integer := 10;
   v_window_start timestamptz;
   v_count integer;
   v_allowed boolean;
@@ -38,10 +39,8 @@ begin
     raise insufficient_privilege using message = 'Authentication required';
   end if;
 
-  if p_organization_id is null
-     or p_window_seconds < 60 or p_window_seconds > 3600
-     or p_max_requests < 1 or p_max_requests > 100 then
-    raise invalid_parameter_value using message = 'Invalid quota parameters';
+  if p_organization_id is null then
+    raise invalid_parameter_value using message = 'Organisation is required';
   end if;
 
   if not private.has_org_role(
@@ -52,7 +51,7 @@ begin
   end if;
 
   v_window_start := to_timestamp(
-    floor(extract(epoch from v_now) / p_window_seconds) * p_window_seconds
+    floor(extract(epoch from v_now) / v_window_seconds) * v_window_seconds
   );
 
   insert into public.ai_orchestration_intake_limits as limits (
@@ -64,12 +63,12 @@ begin
   on conflict (organization_id, user_id) do update
   set
     window_started_at = case
-      when limits.window_started_at + make_interval(secs => p_window_seconds) <= v_now
+      when limits.window_started_at + make_interval(secs => v_window_seconds) <= v_now
         then v_window_start
       else limits.window_started_at
     end,
     request_count = case
-      when limits.window_started_at + make_interval(secs => p_window_seconds) <= v_now
+      when limits.window_started_at + make_interval(secs => v_window_seconds) <= v_now
         then 1
       else limits.request_count + 1
     end,
@@ -77,11 +76,11 @@ begin
   returning limits.request_count, limits.window_started_at
   into v_count, v_window_start;
 
-  v_allowed := v_count <= p_max_requests;
+  v_allowed := v_count <= v_max_requests;
   v_retry_after := greatest(
     0,
     ceil(extract(epoch from (
-      v_window_start + make_interval(secs => p_window_seconds) - v_now
+      v_window_start + make_interval(secs => v_window_seconds) - v_now
     )))::integer
   );
 
@@ -89,12 +88,12 @@ begin
   select
     v_allowed,
     case when v_allowed then 0 else v_retry_after end,
-    greatest(0, p_max_requests - v_count);
+    greatest(0, v_max_requests - v_count);
 end;
 $function$;
 
-revoke all on function public.consume_ai_orchestration_intake_quota(uuid, integer, integer) from public, anon;
-grant execute on function public.consume_ai_orchestration_intake_quota(uuid, integer, integer) to authenticated;
+revoke all on function public.consume_ai_orchestration_intake_quota(uuid) from public, anon;
+grant execute on function public.consume_ai_orchestration_intake_quota(uuid) to authenticated;
 
-comment on function public.consume_ai_orchestration_intake_quota(uuid, integer, integer)
-is 'Atomically consumes an authenticated organisation-scoped orchestration intake quota; denies access unless caller has an allowed active organisation role.';
+comment on function public.consume_ai_orchestration_intake_quota(uuid)
+is 'Consumes a fixed 10-request/5-minute authenticated per-user, per-organisation orchestration quota; denies access unless caller has an allowed active organisation role.';
