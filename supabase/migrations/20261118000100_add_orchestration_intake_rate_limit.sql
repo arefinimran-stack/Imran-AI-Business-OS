@@ -10,7 +10,7 @@ create table if not exists public.ai_orchestration_intake_limits (
 );
 
 alter table public.ai_orchestration_intake_limits enable row level security;
-revoke all on table public.ai_orchestration_intake_limits from anon, authenticated;
+revoke all on table public.ai_orchestration_intake_limits from public, anon, authenticated;
 
 create or replace function public.consume_ai_orchestration_intake_quota(
   p_organization_id uuid,
