@@ -169,7 +169,7 @@ export default function Dashboard() {
         {error && <div className="os-alert error">{error}</div>}
         {notice && <div className="os-alert success">{notice}</div>}
         {loading ? <div className="os-loading"><span className="os-spinner"/> Connecting to your live workspace…</div> : <>
-          {active === 'Overview' && <Overview tasks={tasks} openTasks={openTasks} overdue={overdue} ventures={ventures} contacts={contacts} openMatters={openMatters} setActive={setActive} onTaskStatus={changeTaskStatus} />}
+          {active === 'Overview' && <Overview tasks={tasks} projects={projects} matters={matters} openTasks={openTasks} overdue={overdue} ventures={ventures} contacts={contacts} openMatters={openMatters} setActive={setActive} onTaskStatus={changeTaskStatus} />}
           {active === 'Divisions' && <section className="os-panel">
             <PanelTitle title="Business divisions" sub="The approved blueprint is preserved. Legal & Corporate leads execution; IA² Holdings follows; C3 Lifestyle and Bold Cotton remain queued for later." count={DIVISIONS.length + ' divisions'} />
             <div className="os-venture-grid">{DIVISIONS.map(d => <article className="os-venture" key={d.id}>
@@ -222,7 +222,7 @@ function MatterList({ matters, onUpdate }) {
   if (!matters.length) return <Empty text="No legal matters registered. New matters are marked confidential by default." />;
   return <div className="os-matter-list">{matters.map(m=><article className="os-matter-row" key={m.id}><div><b>{m.title}</b><small>{m.reference_code} · {m.matter_type || 'Matter type not set'} · {m.court_or_forum || 'Forum not set'}</small></div><span className={'os-priority ' + m.priority}>{priorityLabel(m.priority)}</span><select value={m.status} onChange={e => onUpdate(m, { status: e.target.value })} aria-label={"Status for " + m.reference_code}><option value="open">Open</option><option value="pending">Pending</option><option value="on_hold">On hold</option><option value="closed">Closed</option><option value="archived">Archived</option></select><label className="os-hearing-edit">Next date <input type="date" value={m.next_hearing_at ? new Date(m.next_hearing_at).toISOString().slice(0,10) : ""} onChange={e => onUpdate(m, { next_hearing_at: e.target.value ? new Date(e.target.value + "T09:00:00").toISOString() : null })}/></label><span className="os-confidential">Confidential</span></article>)}</div>;
 }
-function Overview({ tasks, openTasks, overdue, ventures, contacts, openMatters, setActive, onTaskStatus }) {
+function Overview({ tasks, projects = [], matters = [], openTasks, overdue, ventures, contacts, openMatters, setActive, onTaskStatus }) {
   const metrics = [['OPEN TASKS', String(openTasks.length).padStart(2,'0'), 'Work requiring action'], ['LEGAL MATTERS', String(openMatters.length).padStart(2,'0'), 'Open and pending matters'], ['RELATIONSHIPS', String(contacts.length).padStart(2,'0'), 'Contacts and leads'], ['VENTURES', String(ventures.length).padStart(2,'0'), 'Registered business units']];
   return <>
     <div className="os-section-head"><div><h2>Executive overview</h2><p>Live records from your operating workspace.</p></div><span className="os-phase">CONNECTED · CORE MODULES</span></div>
