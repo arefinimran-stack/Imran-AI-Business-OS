@@ -107,7 +107,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: quotaData, error: quotaError } = await supabase.rpc(
       "consume_ai_orchestration_intake_quota",
-      { p_organization_id: organizationId, p_window_seconds: 300, p_max_requests: 10 },
+      { p_organization_id: organizationId },
     );
     if (quotaError) {
       console.error("orchestration_quota_check_failed", quotaError.code);
