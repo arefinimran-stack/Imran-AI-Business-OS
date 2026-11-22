@@ -143,7 +143,7 @@ export default function Dashboard() {
 
   return <main className="os-shell">
     <aside className="os-sidebar">
-      <div className="os-brand"><div className="os-mark">IA²</div><div><b>IA² VISUAL RC</b><small>HOLDINGS COMMAND CENTRE</small></div></div>
+      <div className="os-brand"><div className="os-mark"><img src="/ia2-visual-rc.svg" alt="IA² Visual RC"/></div><div><b>IA² VISUAL RC</b><small>HOLDINGS COMMAND CENTRE</small></div></div>
       <div className="os-workspace-label">WORKSPACE</div>
       <div style={{padding:'0 14px 12px'}}>
         <input aria-label="Search workspace navigation" type="search" value={navSearch} onChange={e => setNavSearch(e.target.value)} placeholder="Search modules…" style={{width:'100%',height:38,border:'1px solid var(--os-border, #e4e6df)',borderRadius:8,padding:'0 11px',fontSize:12,background:'var(--os-surface, #fff)',color:'inherit'}} />
