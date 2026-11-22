@@ -32,7 +32,6 @@ export default function AgentControlCentre({ org, supabase }) {
 
   useEffect(() => { load(); }, [load]);
   const runCounts = runs.reduce((acc, run) => { acc[run.status] = (acc[run.status] || 0) + 1; return acc; }, {});
-  const enabledAgents = agents.filter(a => ['configured','testing','active'].includes(a.status));
 
   return <section className="os-panel">
     <div className="os-panel-head"><div><h2>Agent, Skill & Tool Registry</h2><p>Specialist roster, approved capabilities, connector register and execution history.</p></div><span className="os-count">{agents.length} agents · {tools.length} tools</span></div>
