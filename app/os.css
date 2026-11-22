@@ -169,3 +169,5 @@
 .rc-inbox-card p{font-size:9px;line-height:1.75;color:#5f5a51;white-space:pre-wrap}
 .rc-inbox-card>small{font-size:8px;color:#8d877b}
 @media(max-width:560px){.rc-inbox-toolbar{align-items:flex-start;flex-direction:column}.rc-inbox-toolbar>div:last-child{width:100%}.rc-inbox-toolbar select{flex:1}.rc-inbox-kpis{grid-template-columns:repeat(2,1fr)}}
+
+.os-mark img{display:block;width:100%;height:100%;object-fit:contain;border-radius:inherit}.rc-hero-emblem img{width:120px;height:120px;object-fit:contain;border-radius:50%}
