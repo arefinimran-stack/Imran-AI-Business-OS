@@ -8,7 +8,7 @@ export async function POST(request){
     if(!url||!key)return NextResponse.json({error:'The secure enquiry service is not configured yet. Please email arefin.imran@gmail.com.'},{status:503});
     const response=await fetch(url.replace(/\/$/,'')+'/functions/v1/adviser-consultation-intake',{
       method:'POST',
-      headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key},
+      headers:{'Content-Type':'application/json','apikey':key,'x-forwarded-for':request.headers.get('x-forwarded-for')||'unknown','user-agent':request.headers.get('user-agent')||''},
       body:JSON.stringify(body),
       cache:'no-store'
     });
