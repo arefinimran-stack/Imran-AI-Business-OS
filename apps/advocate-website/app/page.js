@@ -1,22 +1,78 @@
-const services=[
-['Corporate & Commercial','Company formation, corporate structuring, governance, commercial transactions and regulatory advisory.'],
-['Constitutional & Writ','Constitutional remedies, judicial review and writ-related legal assistance before the appropriate courts.'],
-['Criminal Litigation','Criminal defence, bail, quashment and related appellate and revisional proceedings, subject to case assessment.'],
-['Civil & Property','Civil disputes, title and document review, land-related legal assistance and property transactions.'],
-['Contracts & Documentation','Drafting, vetting and negotiation support for commercial agreements, deeds, partnership documents and corporate instruments.'],
-['Tax & Regulatory Advisory','Legal review and coordination on tax, compliance and regulatory matters, with specialist input where required.'],
-['International & Cross-border','Bangladesh legal support for overseas individuals, families, investors and businesses entering or operating in Bangladesh.'],
-['Dispute Resolution','Case strategy, legal opinions, negotiation support and litigation planning.']
+import SiteShell from './components/SiteShell';
+
+const services = [
+  ['01','Foreign Investment & International Business Advisory','Bangladesh market entry, local legal coordination, corporate structuring and investment-related support.','/international-advisory'],
+  ['02','Business Formation & Contracts','Company formation support, commercial agreements, partnership documents and contract review.','/advisory/business-formation'],
+  ['03','Corporate Compliance & Governance','Governance frameworks, statutory compliance coordination, board documentation and corporate risk review.','/advisory/corporate-compliance'],
+  ['04','Property & Real Estate','Property document review, due-diligence coordination, title-related support and transaction guidance.','/advisory/property-real-estate'],
+  ['05','Personal & Family Legal Solutions','Practical legal support for personal, family, succession and property-related matters.','/advisory/personal-family'],
+  ['06','Litigation-Related Advisory','Case assessment, legal research, drafting, litigation strategy and preparation for formal representation.','/advisory/litigation-advisory']
 ];
-const insights=[['Legal awareness','Plain-language explanations of important legal rights, procedures and recent legal developments.'],['Case notes','Carefully sourced summaries of judgments, with citations and practical legal analysis.'],['Corporate briefings','Company law, investment, contracts, governance and Bangladesh market-entry updates.']];
-export default function Home(){return <main>
-<header className="nav"><a className="brand" href="#">AREFIN <span>CHAMBER</span></a><nav><a href="#practice">Practice</a><a href="#profile">Profile</a><a href="#insights">Insights</a><a href="#contact">Contact</a></nav><a className="nav-cta" href="#contact">Request a consultation <b>↗</b></a></header>
-<section className="hero"><div className="hero-copy"><p className="eyebrow">THE LEGAL PRACTICE OF ADV. IMRAN AREFIN</p><h1>Clarity in law.<br/><em>Confidence in action.</em></h1><p className="lead">Arefin Chamber, led by Adv. Imran Arefin, provides legal representation and strategic counsel across litigation, corporate and commercial matters, and Bangladesh-focused legal support for local and international clients.</p><div className="hero-actions"><a className="primary" href="#contact">Discuss a legal matter <span>↗</span></a><a className="secondary" href="#practice">Explore practice areas</a></div><div className="hero-proof"><span>ADVOCATE</span><i></i><span>SUPREME COURT OF BANGLADESH</span></div></div><div className="hero-art"><div className="art-frame"><div className="art-monogram">IA</div><div className="art-caption"><span>IMRAN AREFIN</span><small>ADVOCATE · BANGLADESH</small></div></div><div className="art-note">INDEPENDENT<br/>LEGAL THINKING<br/>— EST. IN PRACTICE</div></div><div className="hero-bottom">DHAKA, BANGLADESH <span>LEGAL SERVICES · LOCAL KNOWLEDGE · INTERNATIONAL OUTLOOK</span></div></section>
-<section className="intro" id="profile"><div className="section-kicker">01 / PROFESSIONAL PROFILE</div><div><h2>Law grounded in preparation.<br/><em>Advice shaped by context.</em></h2><p>Legal problems rarely exist in isolation. Effective representation requires a clear understanding of the facts, the governing law, the commercial or personal context, and the practical outcome sought.</p><p>Adv. Imran Arefin works across litigation and advisory matters, bringing a structured, evidence-led approach to legal analysis, drafting, negotiation and courtroom preparation.</p><a className="text-link" href="#contact">Connect with Arefin Chamber ↗</a></div></section>
-<section className="practice" id="practice"><div className="section-head"><div><div className="section-kicker">02 / AREAS OF PRACTICE</div><h2>Legal services for<br/><em>complex decisions.</em></h2></div><p>Engagements are scoped after reviewing the facts, documents, jurisdiction and professional requirements of each matter.</p></div><div className="service-grid">{services.map((s,i)=><article className="service" key={s[0]}><span>0{i+1}</span><h3>{s[0]}</h3><p>{s[1]}</p><a href="#contact">Discuss this service ↗</a></article>)}</div></section>
-<section className="international"><div className="section-kicker">03 / BANGLADESH LEGAL DESK</div><div><h2>For clients with interests<br/>in <em>Bangladesh.</em></h2><p>Overseas individuals, families, founders and businesses may need reliable local legal support when dealing with property, succession, contracts, company formation, investment structures, disputes or regulatory processes in Bangladesh.</p><p>The chamber can assess the local legal requirements, advise on a suitable scope of work and coordinate with other qualified professionals where necessary.</p><a className="light-link" href="#contact">Enquire about Bangladesh legal support ↗</a></div></section>
-<section className="insights" id="insights"><div className="section-kicker">04 / LEGAL KNOWLEDGE & PUBLICATIONS</div><div className="insight-head"><h2>Law, explained<br/><em>with substance.</em></h2><p>A developing legal knowledge platform featuring accessible legal-awareness content, case commentary and corporate briefings. Published materials will cite their sources and distinguish legal information from advice on an individual case.</p></div><div className="insight-grid">{insights.map((x,i)=><article key={x[0]}><span>0{i+1} / EDITORIAL</span><h3>{x[0]}</h3><p>{x[1]}</p><a href="#contact">Follow the insights ↗</a></article>)}</div></section>
-<section className="contact" id="contact"><div><div className="section-kicker">05 / CONTACT THE CHAMBER</div><h2>Start with the<br/><em>right conversation.</em></h2><p>Share a short description of the matter and the best way to reach you. Confidential documents should only be shared through an agreed secure channel after engagement terms are discussed.</p></div><div className="contact-card"><span>ADV. IMRAN AREFIN</span><a href="mailto:arefin.imran@gmail.com">arefin.imran@gmail.com</a><a href="tel:+8801711103403">+880 1711-103403</a><a className="primary" href="https://wa.me/8801711103403" target="_blank" rel="noreferrer">WhatsApp the chamber ↗</a><small>Dhaka, Bangladesh · By appointment</small></div></section>
-<footer><a className="brand" href="#">IA<span>.</span></a><p>© {new Date().getFullYear()} Arefin Chamber. Led by Adv. Imran Arefin.</p><p>Website content is general legal information, not a substitute for advice on specific facts.</p></footer>
-</main>
+
+export default function Home() {
+  return <SiteShell>
+    <main>
+      <section className="advisor-hero">
+        <div className="hero-copy">
+          <span className="eyebrow">ADVOCATE IMRAN AREFIN · DHAKA, BANGLADESH</span>
+          <h1>Better decisions begin with <em>clear advice.</em></h1>
+          <p>Legal and business advisory led by Advocate Imran Arefin. Explore professional services, practical legal resources and technology-enabled tools designed to make complex matters easier to understand.</p>
+          <div className="hero-actions">
+            <a className="button button-wine" href="/advisory">Explore advisory services <span>↗</span></a>
+            <a className="button button-outline" href="/consultation">Request a consultation</a>
+          </div>
+          <div className="hero-meta"><span>BUSINESS & CORPORATE</span><i></i><span>PROPERTY & PERSONAL</span><i></i><span>INTERNATIONAL CLIENTS</span></div>
+        </div>
+        <aside className="founder-panel">
+          <div className="founder-art"><div className="founder-initials">IA</div><span>ADVOCATE</span></div>
+          <div className="founder-caption"><b>Imran Arefin</b><small>Legal & Business Advisory · Bangladesh</small></div>
+          <p>Clarity of scope. Careful preparation. Practical direction.</p>
+        </aside>
+        <div className="hero-bottom"><span>THE ADVISOR — Led by IMRAN AREFIN</span><span>LOCAL KNOWLEDGE · INTERNATIONAL OUTLOOK</span></div>
+      </section>
+
+      <section className="trust-strip">
+        <span>Bangladesh-based advisory</span><i></i><span>Individuals & families</span><i></i><span>Entrepreneurs & SMEs</span><i></i><span>International businesses</span><i></i><span>English · বাংলা</span>
+      </section>
+
+      <section className="services-section" id="services">
+        <div className="section-heading"><div><span className="section-kicker">01 / ADVISORY SERVICES</span><h2>Clear direction for <em>important decisions.</em></h2></div><p>Each engagement begins with the facts, the objective, the relevant jurisdiction and a clearly defined scope of work.</p></div>
+        <div className="service-grid">{services.map(item => <article className="service-card" key={item[0]}>
+          <span className="service-number">{item[0]}</span><h3>{item[1]}</h3><p>{item[2]}</p><a href={item[3]}>Explore service ↗</a>
+        </article>)}</div>
+      </section>
+
+      <section className="international-banner">
+        <div><span className="section-kicker">02 / INTERNATIONAL ADVISORY DESK</span><h2>Doing business in Bangladesh? <em>Start with a clear legal map.</em></h2><p>Support for overseas founders, investors and companies assessing a Bangladesh presence, local operating arrangements, corporate structures and legal coordination.</p><a className="button button-sand" href="/international-advisory">Explore Bangladesh market-entry support ↗</a></div>
+        <div className="banner-seal"><span>BD</span><small>LEGAL DESK</small></div>
+      </section>
+
+      <section className="founder-strip">
+        <div className="founder-mark">IA</div>
+        <div><span className="section-kicker">03 / THE ADVISOR</span><h2>Led by <em>Imran Arefin.</em></h2><p>A practical advisory approach that connects legal analysis with the commercial, personal and procedural context behind each matter.</p><a href="/about">Learn about the practice ↗</a></div>
+      </section>
+
+      <section className="lounge-section">
+        <div className="lounge-heading"><div><span className="section-kicker">04 / KNOWLEDGE & INSIGHT</span><h2>MY LEGAL <em>LOUNGE.</em></h2></div><p>Accessible legal awareness, business briefings and carefully sourced commentary. Published material will be reviewed before release.</p></div>
+        <div className="lounge-grid">
+          <article className="lounge-feature"><span>EDITORIAL DESK · IN PREPARATION</span><h3>Legal clarity should be accessible, practical and properly sourced.</h3><p>Explore the planned editorial themes and resource library.</p><a href="/legal-lounge">Enter MY LEGAL LOUNGE ↗</a></article>
+          <article><span>BUSINESS</span><h3>Company formation and commercial foundations</h3><p>Practical checklists and explainers for entrepreneurs.</p></article>
+          <article><span>INTERNATIONAL</span><h3>Bangladesh market-entry questions</h3><p>Issues to scope before committing capital or selecting a structure.</p></article>
+        </div>
+      </section>
+
+      <section className="studio-section">
+        <div className="folder-visual"><div className="folder-back"></div><div className="folder-front"><span>LEGAL</span><b>DOCS</b></div><div className="folder-tab"></div></div>
+        <div><span className="section-kicker">05 / SELF-HELP DOCUMENT STUDIO</span><h2>Start with a structured <em>document.</em></h2><p>Explore guided template tools for common business and personal documents. Templates are starting points only and are not individualized legal advice.</p><a className="button button-wine" href="/document-studio">Open Document Studio ↗</a></div>
+      </section>
+
+      <section className="process-section">
+        <span className="section-kicker">06 / HOW WE WORK</span><h2>Understand first. <em>Advise with purpose.</em></h2>
+        <div className="process-grid">{[['01','Understand','Clarify the facts, objectives and jurisdiction.'],['02','Assess','Review documents, risks and applicable requirements.'],['03','Advise','Define options, scope, priorities and next steps.'],['04','Support','Deliver agreed drafting, coordination or representation.']].map(x=><article key={x[0]}><span>{x[0]}</span><h3>{x[1]}</h3><p>{x[2]}</p></article>)}</div>
+      </section>
+
+      <section className="final-cta"><div><span className="section-kicker">07 / START A CONVERSATION</span><h2>Make the next decision <em>with clarity.</em></h2><p>Share a brief outline of the matter. Do not send confidential documents until a secure channel and engagement scope have been agreed.</p></div><a className="button button-sand" href="/consultation">Request a consultation ↗</a></section>
+      <div className="legal-disclaimer">THE ADVISOR provides general information through this website. No legal advice, representation or lawyer-client relationship arises unless a formal engagement is accepted. Services are subject to conflict checks, scope confirmation and applicable professional requirements.</div>
+    </main>
+  </SiteShell>;
 }

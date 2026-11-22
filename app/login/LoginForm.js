@@ -44,10 +44,10 @@ export default function LoginForm() {
   }
 
   return <main className="auth-shell"><section className="auth-card">
-    <div className="auth-brand"><div className="brand-mark">IA</div><div><b>IMRAN AI</b><small>BUSINESS OS</small></div></div>
-    <div className="auth-eyebrow">PRIVATE FOUNDER WORKSPACE</div>
+    <div className="auth-brand"><div className="brand-mark">IA</div><div><b>IA² VISUAL RC</b><small>FOUNDER CONTROL</small></div></div>
+    <div className="auth-eyebrow">FOUNDER AUTHORITY GATE</div>
     <h1>{mode === 'login' ? 'Welcome back.' : 'Create your account.'}</h1>
-    <p className="auth-intro">A secure workspace for your legal practice, business operations and ventures.</p>
+    <p className="auth-intro">A secure control environment for IA² Holdings and its operating entities.</p>
     <form onSubmit={submit} className="auth-form">
       <label>Email address<input type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com"/></label>
       <label>Password<input type="password" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} minLength={8} required value={password} onChange={e=>setPassword(e.target.value)} placeholder="At least 8 characters"/></label>

@@ -1,0 +1,1 @@
+export default function robots(){return {rules:{userAgent:'*',allow:'/'},sitemap:'https://adv-imran-arefin.vercel.app/sitemap.xml'};}

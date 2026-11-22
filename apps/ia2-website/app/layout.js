@@ -1,3 +1,3 @@
 import './globals.css';
-export const metadata={title:'IA² Holdings | Private Corporate & Venture Group',description:'IA² Holdings is an integrated private corporate and venture group with legal and corporate expertise at its foundation.'};
+export const metadata={metadataBase:new URL('https://ia2-holdings.vercel.app'),title:{default:'IA² Holdings | One Intelligence. Multiple Businesses.',template:'%s | IA² Holdings'},description:'IA² Holdings is a Bangladesh-based private corporate and venture group developing independent businesses and capabilities.',openGraph:{title:'IA² Holdings',description:'One Intelligence. Multiple Businesses. Unlimited Possibilities.',type:'website',locale:'en_BD'},robots:{index:true,follow:true}};
 export default function RootLayout({children}){return <html lang="en"><body>{children}</body></html>}

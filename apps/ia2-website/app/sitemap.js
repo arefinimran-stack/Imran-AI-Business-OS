@@ -1,0 +1,1 @@
+export default function sitemap(){return [{url:'https://ia2-holdings.vercel.app',lastModified:new Date(),changeFrequency:'monthly',priority:1}];}

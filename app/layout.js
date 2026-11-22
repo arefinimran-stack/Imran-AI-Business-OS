@@ -2,8 +2,8 @@ import './globals.css';
 import './os.css';
 
 export const metadata = {
-  title: 'IMRAN AI | Founder Operating System',
-  description: 'Private AI Business Operating System for legal practice, business operations and digital ventures.',
+  title: 'IA² Visual RC | Founder Command Centre',
+  description: 'Private visual command centre for IA² Holdings, its operating entities, founder approvals and digital operations.',
 };
 
 export default function RootLayout({ children }) {

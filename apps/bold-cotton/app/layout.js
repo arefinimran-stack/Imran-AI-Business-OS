@@ -1,0 +1,3 @@
+import './globals.css';
+export const metadata={title:'BOLD COTTON | IA² Holdings Portfolio',description:'An incubation-stage apparel venture exploring product development, sourcing and market opportunities. This preview is for internal brand and digital architecture review only.',robots:{index:false,follow:false},openGraph:{title:'BOLD COTTON',description:'An incubation-stage apparel venture exploring product development, sourcing and market opportunities. This preview is for internal brand and digital architecture review only.',type:'website'}};
+export default function RootLayout({children}){return <html lang="en"><body>{children}</body></html>}
