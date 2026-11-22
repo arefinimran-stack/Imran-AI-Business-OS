@@ -71,6 +71,7 @@ function sanitizeProposal(item) {
 
 export async function POST(request) {
   let jobId = null;
+  let runId = null;
   let supabase = null;
   try {
     const body = await request.json();
@@ -117,6 +118,20 @@ export async function POST(request) {
     if (jobError || !job) return NextResponse.json({ error: 'Could not create the command audit record.' }, { status: 500 });
     jobId = job.id;
 
+    const { data: run, error: runError } = await supabase.from('ai_agent_runs').insert({
+      organization_id: org.id,
+      agent_id: agent.id,
+      requested_by: user.id,
+      status: 'running',
+      trigger_type: 'manual',
+      input_summary: command.slice(0, 1200),
+      approval_required: true,
+      tool_calls: [{ job_id: job.id }],
+      started_at: new Date().toISOString()
+    }).select('id').single();
+    if (runError || !run) throw new Error('Could not create the agent run audit record.');
+    runId = run.id;
+
     await supabase.from('ai_orchestration_jobs').update({ status: 'planning' }).eq('id', job.id).eq('organization_id', org.id);
     await supabase.from('ai_orchestration_jobs').update({ status: 'running', started_at: new Date().toISOString() }).eq('id', job.id).eq('organization_id', org.id);
 
@@ -152,6 +167,7 @@ export async function POST(request) {
 
     const modelData = await modelResponse.json().catch(() => ({}));
     if (!modelResponse.ok) {
+      if (runId) await supabase.from('ai_agent_runs').update({ status: 'failed', error_code: 'NVIDIA_PROVIDER_ERROR', error_summary: 'NVIDIA inference did not complete.', completed_at: new Date().toISOString() }).eq('id', runId).eq('organization_id', org.id);
       await supabase.from('ai_orchestration_jobs').update({
         status: 'failed',
         error_code: 'NVIDIA_PROVIDER_ERROR',
@@ -194,6 +210,7 @@ export async function POST(request) {
     const finalReply = String(parsed.reply || raw || 'Command processed.').slice(0, 6000);
     const blocked = parsed.blocked_actions.filter(x => typeof x === 'string').slice(0, 5);
     const result = { reply: finalReply, approval_ids: approvalCards.map(x => x.approval_id), blocked_actions: blocked, provider: 'nvidia', model };
+    if (runId) await supabase.from('ai_agent_runs').update({ status: approvalCards.length ? 'needs_review' : 'succeeded', output_summary: finalReply.slice(0, 3000), approval_required: approvalCards.length > 0, completed_at: new Date().toISOString() }).eq('id', runId).eq('organization_id', org.id);
     await supabase.from('ai_orchestration_jobs').update({
       status: approvalCards.length ? 'awaiting_approval' : 'succeeded',
       risk_class: approvalCards.length ? 'internal_write' : 'read_only',
@@ -211,6 +228,7 @@ export async function POST(request) {
       model
     }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
+    if (supabase && runId) await supabase.from('ai_agent_runs').update({ status: 'failed', error_code: 'COMMAND_RELAY_ERROR', error_summary: 'The command relay could not complete the request.', completed_at: new Date().toISOString() }).eq('id', runId);
     if (supabase && jobId) {
       await supabase.from('ai_orchestration_jobs').update({
         status: 'failed',
