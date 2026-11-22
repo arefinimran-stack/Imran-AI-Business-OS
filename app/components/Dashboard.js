@@ -8,10 +8,11 @@ import AgentControlCentre from './AgentControlCentre';
 import EntityCommandHome from './EntityCommandHome';
 import CommandRelay from './CommandRelay';
 import SystemHealth from './SystemHealth';
+import ConsultationInbox from './ConsultationInbox';
 import { DIVISIONS, CENTRAL_FUNCTIONS } from '../lib/operating-model';
 
 const nav = [
-  ['Overview', '⌂'], ['Entities', '▦'], ['Command Relay', '⌘'], ['System Health', '⚙'], ['Divisions', '▦'], ['Central functions', '✳'], ['Tasks', '☷'], ['Legal matters', '§'],
+  ['Overview', '⌂'], ['Entities', '▦'], ['Command Relay', '⌘'], ['Consultations', '✉'], ['System Health', '⚙'], ['Divisions', '▦'], ['Central functions', '✳'], ['Tasks', '☷'], ['Legal matters', '§'],
   ['Contacts', '◎'], ['Business development', '↗'], ['Opportunity Radar', '◈'], ['AI Agents & Tools', '✳'], ['Projects', '▦'], ['Finance', '৳'], ['Content studio', '▣'], ['Ventures', '◇'], ['Documents', '▤'],
 ];
 const dateLabel = value => value ? new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
@@ -162,6 +163,7 @@ export default function Dashboard() {
         {loading ? <div className="os-loading"><span className="os-spinner"/> Connecting to your live workspace…</div> : <>
           {(active === 'Overview' || active === 'Entities') && <Overview tasks={tasks} openTasks={openTasks} overdue={overdue} ventures={ventures} contacts={contacts} openMatters={openMatters} setActive={setActive} />}
           {active === 'Command Relay' && <CommandRelay />}
+          {active === 'Consultations' && <ConsultationInbox org={org} supabase={supabase} />}
           {active === 'System Health' && <SystemHealth org={org} supabase={supabase} />}
           {active === 'Divisions' && <section className="os-panel">
             <PanelTitle title="Business divisions" sub="The approved blueprint is preserved. Legal & Corporate leads execution; IA² Holdings follows; C3 Lifestyle and Bold Cotton remain queued for later." count={DIVISIONS.length + ' divisions'} />
