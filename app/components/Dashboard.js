@@ -5,10 +5,13 @@ import { createClient } from '../../lib/supabase/client';
 import ExtendedModules from './ExtendedModules';
 import OpportunityRadar from './OpportunityRadar';
 import AgentControlCentre from './AgentControlCentre';
+import EntityCommandHome from './EntityCommandHome';
+import CommandRelay from './CommandRelay';
+import SystemHealth from './SystemHealth';
 import { DIVISIONS, CENTRAL_FUNCTIONS } from '../lib/operating-model';
 
 const nav = [
-  ['Overview', '⌂'], ['Divisions', '▦'], ['Central functions', '✳'], ['Tasks', '☷'], ['Legal matters', '§'],
+  ['Overview', '⌂'], ['Entities', '▦'], ['Command Relay', '⌘'], ['System Health', '⚙'], ['Divisions', '▦'], ['Central functions', '✳'], ['Tasks', '☷'], ['Legal matters', '§'],
   ['Contacts', '◎'], ['Business development', '↗'], ['Opportunity Radar', '◈'], ['AI Agents & Tools', '✳'], ['Projects', '▦'], ['Finance', '৳'], ['Content studio', '▣'], ['Ventures', '◇'], ['Documents', '▤'],
 ];
 const dateLabel = value => value ? new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
@@ -140,7 +143,7 @@ export default function Dashboard() {
 
   return <main className="os-shell">
     <aside className="os-sidebar">
-      <div className="os-brand"><div className="os-mark">IA</div><div><b>IMRAN AI</b><small>FOUNDER OPERATING SYSTEM</small></div></div>
+      <div className="os-brand"><div className="os-mark">IA²</div><div><b>IA² VISUAL RC</b><small>HOLDINGS COMMAND CENTRE</small></div></div>
       <div className="os-workspace-label">WORKSPACE</div>
       <div style={{padding:'0 14px 12px'}}>
         <input aria-label="Search workspace navigation" type="search" value={navSearch} onChange={e => setNavSearch(e.target.value)} placeholder="Search modules…" style={{width:'100%',height:38,border:'1px solid var(--os-border, #e4e6df)',borderRadius:8,padding:'0 11px',fontSize:12,background:'var(--os-surface, #fff)',color:'inherit'}} />
@@ -151,14 +154,16 @@ export default function Dashboard() {
       <div className="os-sidebar-bottom"><div className="os-avatar">IA</div><div className="os-user"><b>{user?.user_metadata?.full_name || 'Founder'}</b><small>{user?.email || 'Founder account'}</small></div><button className="os-signout" onClick={signOut} title="Sign out">↗</button></div>
     </aside>
     <section className="os-main">
-      <header className="os-topbar"><div className="os-crumb">IMRAN AI <span>/</span> <b>{active}</b></div><div className="os-top-right"><span className="os-live"><i/> Connected workspace</span><button className="os-refresh" onClick={load}>↻ Refresh</button></div></header>
+      <header className="os-topbar"><div className="os-crumb">IA² VISUAL RC <span>/</span> <b>{active}</b></div><div className="os-top-right"><span className="os-live"><i/> Connected workspace</span><button className="os-refresh" onClick={load}>↻ Refresh</button></div></header>
       <div className="os-content">
-        <div className="os-eyebrow">{new Date().toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase()} <span>•</span> PRIVATE FOUNDER WORKSPACE</div>
-        <div className="os-hero"><div><h1>{greeting}, Imran.</h1><p>Your work, legal practice and ventures — connected in one place.</p></div><div className="os-hero-note">ONE INTELLIGENCE. MULTIPLE BUSINESSES.</div></div>
+        <div className="os-eyebrow">{new Date().toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase()} <span>•</span> IA² HOLDINGS · PRIVATE CONTROL ENVIRONMENT</div>
+        <div className="os-hero"><div><h1>IA² VISUAL RC</h1><p>One command. Every entity in view.</p></div><div className="os-hero-note">PLAN · DIRECT · APPROVE</div></div>
         {error && <div className="os-alert error">{error}</div>}
         {notice && <div className="os-alert success">{notice}</div>}
         {loading ? <div className="os-loading"><span className="os-spinner"/> Connecting to your live workspace…</div> : <>
-          {active === 'Overview' && <Overview tasks={tasks} openTasks={openTasks} overdue={overdue} ventures={ventures} contacts={contacts} openMatters={openMatters} setActive={setActive} />}
+          {(active === 'Overview' || active === 'Entities') && <Overview tasks={tasks} openTasks={openTasks} overdue={overdue} ventures={ventures} contacts={contacts} openMatters={openMatters} setActive={setActive} />}
+          {active === 'Command Relay' && <CommandRelay />}
+          {active === 'System Health' && <SystemHealth org={org} supabase={supabase} />}
           {active === 'Divisions' && <section className="os-panel">
             <PanelTitle title="Business divisions" sub="The approved blueprint is preserved. Legal & Corporate leads execution; IA² Holdings follows; C3 Lifestyle and Bold Cotton remain queued for later." count={DIVISIONS.length + ' divisions'} />
             <div className="os-venture-grid">{DIVISIONS.map(d => <article className="os-venture" key={d.id}>
@@ -194,7 +199,7 @@ export default function Dashboard() {
           {['Projects','Business development','Finance','Content studio'].includes(active) && <ExtendedModules active={active} org={org} supabase={supabase} />}
           {active === 'Documents' && <section className="os-panel"><PanelTitle title="Legal documents" sub="Drafts and final documents linked to the legal workspace. All generated text remains a draft until reviewed by the Advocate." count={documents.length + ' documents'} /><form className="os-form-grid" onSubmit={addDocument}><input value={documentTitle} onChange={e => setDocumentTitle(e.target.value)} placeholder="Document title" required/><select value={documentLanguage} onChange={e => setDocumentLanguage(e.target.value)}><option>English</option><option>Bangla</option></select><textarea value={documentContent} onChange={e => setDocumentContent(e.target.value)} placeholder="Draft text / clauses / notes. Verify all facts and authorities before use." rows={5} required/><button disabled={saving}>{saving ? 'Saving…' : 'Save draft for review'}</button></form><div className="os-table-wrap"><table className="os-table"><thead><tr><th>Document</th><th>Template</th><th>Language</th><th>Status</th><th>Created</th></tr></thead><tbody>{documents.map(d=><tr key={d.id}><td><b>{d.title}</b></td><td>{d.template_key}</td><td>{d.language}</td><td><span className="os-chip">{d.status}</span></td><td>{dateLabel(d.created_at)}</td></tr>)}</tbody></table>{!documents.length && <Empty text="No documents saved yet. Document drafting will be enabled after the secure workspace is fully validated."/>}</div></section>}
         </>}
-        <footer className="os-footer"><span>IMRAN AI BUSINESS OS</span><span>PRIVATE WORKSPACE · LIVE DATA · BANGLADESH</span></footer>
+        <footer className="os-footer"><span>IA² VISUAL RC · IA² HOLDINGS</span><span>PRIVATE WORKSPACE · EVIDENCE-LED OPERATIONS</span></footer>
       </div>
     </section>
   </main>;
@@ -211,13 +216,5 @@ function MatterList({ matters, onUpdate }) {
   return <div className="os-matter-list">{matters.map(m=><article className="os-matter-row" key={m.id}><div><b>{m.title}</b><small>{m.reference_code} · {m.matter_type || 'Matter type not set'} · {m.court_or_forum || 'Forum not set'}</small></div><span className={'os-priority ' + m.priority}>{priorityLabel(m.priority)}</span><select value={m.status} onChange={e => onUpdate(m, { status: e.target.value })} aria-label={"Status for " + m.reference_code}><option value="open">Open</option><option value="pending">Pending</option><option value="on_hold">On hold</option><option value="closed">Closed</option><option value="archived">Archived</option></select><label className="os-hearing-edit">Next date <input type="date" value={m.next_hearing_at ? new Date(m.next_hearing_at).toISOString().slice(0,10) : ""} onChange={e => onUpdate(m, { next_hearing_at: e.target.value ? new Date(e.target.value + "T09:00:00").toISOString() : null })}/></label><span className="os-confidential">Confidential</span></article>)}</div>;
 }
 function Overview({ tasks, openTasks, overdue, ventures, contacts, openMatters, setActive }) {
-  const metrics = [['OPEN TASKS', String(openTasks.length).padStart(2,'0'), 'Work requiring action'], ['LEGAL MATTERS', String(openMatters.length).padStart(2,'0'), 'Open and pending matters'], ['RELATIONSHIPS', String(contacts.length).padStart(2,'0'), 'Contacts and leads'], ['VENTURES', String(ventures.length).padStart(2,'0'), 'Registered business units']];
-  return <>
-    <div className="os-section-head"><div><h2>Executive overview</h2><p>Live records from your operating workspace.</p></div><span className="os-phase">CONNECTED · CORE MODULES</span></div>
-    <div className="os-metrics">{metrics.map(([label,value,sub])=><article className="os-metric" key={label}><span>{label}</span><strong>{value}</strong><small>{sub}</small></article>)}</div>
-    <div className="os-overview-grid"><section className="os-panel"><PanelTitle title="Priority desk" sub="Your most recent actions." count={openTasks.length + ' open'}/><TaskList tasks={tasks.slice(0,6)} onStatus={async (task,status)=>{const supabase=createClient();const {error}=await supabase.from('tasks').update({status}).eq('id',task.id);if(!error)window.location.reload();}}/><button className="os-link" onClick={()=>setActive('Tasks')}>Open task desk →</button></section>
-      <section className="os-panel"><PanelTitle title="Founder attention" sub="Items that may need immediate review." count={overdue.length + ' overdue'}/><div className="os-attention"><div><b>{overdue.length ? 'Overdue tasks' : 'No overdue tasks'}</b><small>{overdue.length ? 'Review due dates and move blocked work forward.' : 'Your task register has no overdue items.'}</small></div><div><b>{openMatters.length} active legal matters</b><small>Keep court dates and client commitments current.</small></div><div><b>{ventures.length} registered ventures</b><small>Business metrics remain blank until verified.</small></div></div><button className="os-link" onClick={()=>setActive('Legal matters')}>Open legal desk →</button></section></div>
-    <div className="os-section-head os-modules-head"><div><h2>Operating modules</h2><p>Navigate directly to live registers.</p></div></div>
-    <div className="os-module-grid">{[['Legal matters','§','Confidential matter register'],['Tasks','☷','Daily execution and priorities'],['Contacts','◎','Clients, leads and relationships'],['Ventures','◇','Business unit portfolio'],['Documents','▤','Legal document register']].map(([name,icon,desc])=><button key={name} className="os-module" onClick={()=>setActive(name)}><span>{icon}</span><b>{name}</b><small>{desc}</small><i>↗</i></button>)}</div>
-  </>;
+  return <EntityCommandHome tasks={tasks} openTasks={openTasks} overdue={overdue} ventures={ventures} contacts={contacts} openMatters={openMatters} setActive={setActive} />;
 }
