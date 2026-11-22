@@ -1,0 +1,4 @@
+import SiteShell from '../components/SiteShell';
+import DocumentStudioApp from '../components/DocumentStudioApp';
+export const metadata={title:'Document Builder | THE ADVISER',description:'Guided self-help legal document template builder.'};
+export default function AppPage(){return <SiteShell><main className="inner-page app-page"><span className="section-kicker">THE ADVISER · DOCUMENT BUILDER</span><h1>Document <em>Studio.</em></h1><p className="inner-lead">Choose a template, enter the basic details and generate an editable starting draft. Nothing is sent to a server by this template builder.</p><DocumentStudioApp /></main></SiteShell>}
