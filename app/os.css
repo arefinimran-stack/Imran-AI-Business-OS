@@ -296,3 +296,34 @@
 @media(max-width:760px){.os-sidebar{background:linear-gradient(165deg,#3B0010,#7F011F)!important}.os-topbar{padding:0 16px!important}.os-content{padding:22px 16px!important}.rc-hero{padding:23px 20px!important}.rc-entity-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.rc-folder-scene{transform:scale(.92)}}
 @media(max-width:460px){.rc-entity-grid{grid-template-columns:1fr}.rc-entity-card{min-height:220px}}
 @media(prefers-reduced-motion:reduce){.rc-folder-scene,.rc-folder-paper,.rc-folder-flap{transition:none!important}}
+
+
+/* Apply the same identity to every IA² workspace tab, not only the overview */
+.os-module,.os-venture,.os-finance-summary article{background:#FFFEFB!important;border-color:#E6D9C1!important;color:#211B1B!important;box-shadow:0 5px 16px rgba(90,0,22,.035)}
+.os-module:hover,.os-chip-button:hover{border-color:#C5A15B!important}
+.os-module>span,.os-module i{color:#A88443!important}
+.os-module b,.os-venture h3{color:#3B0010!important}
+.os-module small,.os-venture-top,.os-venture>small{color:#817363!important}
+.os-venture p,.os-venture ul{color:#5F554A!important}
+.os-link{color:#7F011F!important}
+.os-table{background:#FFFEFB!important}
+.os-table th{color:#76695B!important;border-color:#E6D9C1!important}
+.os-table td{color:#554A40!important;border-color:#EFE6D8!important}
+.os-table td b{color:#3B0010!important}
+.os-chip{background:#F7E6EA!important;color:#7F011F!important}
+.os-task-row,.os-matter-row,.os-attention>div{border-color:#E9DDC9!important}
+.os-task-row select,.os-form-grid select,.os-inline-form select,.os-extended-form select,.os-content-filters input,.os-content-filters select,.os-table td select{background:#FFFEFB!important;border-color:#DCCEB7!important;color:#29211D!important}
+.os-due,.os-task-main small,.os-empty,.os-loading{color:#766B5F!important}
+.os-priority{background:#F5EBD0!important;color:#72551E!important}
+.os-finance-summary article{background:#FBF6EA!important}
+.os-finance-summary small{color:#766B5F!important}
+.os-extended-form button{background:#7F011F!important;color:#FFF9EE!important;border-color:#7F011F!important}
+.os-chip-button{background:#FBF6EA!important;border-color:#DCCEB7!important;color:#7F011F!important}
+.os-platform-picks{background:#FBF6EA!important;border-color:#E6D9C1!important}
+.os-platform-picks label{color:#554A40!important}
+.os-platform-picks input{accent-color:#7F011F!important}
+.os-content-filters input,.os-content-filters select{color:#29211D!important}
+.os-spinner{border-color:#E8DCC7!important;border-top-color:#7F011F!important}
+.os-alert.success{background:#EDF4ED!important;color:#315C38!important;border-color:#D6E4D4!important}
+.os-alert.error{background:#F9E9E9!important;color:#8A2525!important;border-color:#E8CACA!important}
+.os-footer{border-color:#E6D9C1!important;color:#766B5F!important}
