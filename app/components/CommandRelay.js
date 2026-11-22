@@ -69,7 +69,7 @@ export default function CommandRelay() {
     <form className="rc-command-form" onSubmit={submit}>
       <label htmlFor="rc-command-agent">DIRECT THE SPECIALIST</label>
       <select id="rc-command-agent" value={agentKey} onChange={e => setAgentKey(e.target.value)} disabled={busy}>
-        <option value="command-orchestrator">Founder Command Orchestrator</option>
+        <option value="command-orchestrator">Founder Command Relay</option>
         <option value="market-intelligence">Market Intelligence</option>
       </select>
       <label htmlFor="rc-command-input">YOUR COMMAND</label>
