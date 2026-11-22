@@ -5,6 +5,14 @@ import { createClient } from '../../../../lib/supabase/server.js';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+function stableStringify(value) {
+  if (Array.isArray(value)) return '[' + value.map(stableStringify).join(',') + ']';
+  if (value && typeof value === 'object') {
+    return '{' + Object.keys(value).sort().map(key => JSON.stringify(key) + ':' + stableStringify(value[key])).join(',') + '}';
+  }
+  return JSON.stringify(value);
+}
+
 export async function POST(request) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -37,7 +45,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'This approval request has expired. Ask the agent to prepare a new request.' }, { status: 410 });
     }
 
-    const expectedHash = createHash('sha256').update(JSON.stringify(approval.action_payload)).digest('hex');
+    const expectedHash = createHash('sha256').update(stableStringify(approval.action_payload)).digest('hex');
     if (expectedHash !== approval.action_hash) return NextResponse.json({ error: 'Action integrity check failed. No action was executed.' }, { status: 409 });
 
     const { error: decisionError } = await supabase.from('ai_approval_requests').update({
