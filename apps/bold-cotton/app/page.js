@@ -1,0 +1,7 @@
+const focus=["Product and category research","Sourcing and production feasibility","Buyer and market opportunity validation"];
+export default function Home(){return <main className="venture-page">
+<header className="venture-nav"><div className="venture-mark">BC</div><div><b>BOLD COTTON</b><small>APPAREL & GARMENTS</small></div><span className="preview-tag">PRIVATE PREVIEW</span></header>
+<section className="venture-hero"><span className="kicker">IA² HOLDINGS · PORTFOLIO VENTURE</span><h1>BOLD COTTON<br/><em>APPAREL & GARMENTS</em></h1><p>An incubation-stage apparel venture exploring product development, sourcing and market opportunities. This preview is for internal brand and digital architecture review only.</p><div className="stage">RESEARCH ONLY · NOT OPEN FOR ORDERS</div><div className="hero-foot"><span>SEPARATE BRAND IDENTITY</span><span>CONTROLLED INCUBATION</span></div></section>
+<section className="venture-focus"><span className="kicker">CURRENT RESEARCH AREAS</span><h2>Validate before execution.</h2><div className="focus-grid">{focus.map((x,i)=><article key={x}><span>0{i+1}</span><b>{x}</b></article>)}</div><p className="notice">No products, pricing, stock, services, buyers or commercial commitments are represented as live. This page is a private digital-presence preview pending the approved brand identity pack and founder launch approval.</p></section>
+<footer className="venture-footer"><b>BOLD COTTON</b><span>IA² HOLDINGS PORTFOLIO · PRIVATE PREVIEW ONLY</span></footer>
+</main>}
