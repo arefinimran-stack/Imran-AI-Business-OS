@@ -18,9 +18,11 @@ const statusLabel = value => ({ todo: 'To do', in_progress: 'In progress', block
 export default function Dashboard() {
   const [active, setActive] = useState('Overview');
   const [navSearch, setNavSearch] = useState('');
+  const [profileOpen, setProfileOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [org, setOrg] = useState(null);
   const [tasks, setTasks] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [ventures, setVentures] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [matters, setMatters] = useState([]);
@@ -33,6 +35,8 @@ export default function Dashboard() {
   const [taskPriority, setTaskPriority] = useState('normal');
   const [taskDescription, setTaskDescription] = useState('');
   const [taskDue, setTaskDue] = useState('');
+  const [taskProjectId, setTaskProjectId] = useState('');
+  const [taskMatterId, setTaskMatterId] = useState('');
   const [documentTitle, setDocumentTitle] = useState('');
   const [documentContent, setDocumentContent] = useState('');
   const [documentLanguage, setDocumentLanguage] = useState('English');
@@ -57,15 +61,16 @@ export default function Dashboard() {
       const { data: orgData, error: orgError } = await supabase.from('organizations').select('id,name,slug').eq('slug', 'imran-ai').single();
       if (orgError) throw new Error(orgError.message === 'JSON object requested, multiple (or no) rows returned' ? 'Founder workspace access is not active for this account. Sign out and sign in again, or request founder access.' : orgError.message);
       setOrg(orgData);
-      const [t, v, c, m, d] = await Promise.all([
-        supabase.from('tasks').select('id,title,description,status,priority,due_at,created_at,related_matter_id').eq('organization_id', orgData.id).order('created_at', { ascending: false }).limit(100),
+      const [t, v, c, m, d, p] = await Promise.all([
+        supabase.from('tasks').select('id,title,description,status,priority,due_at,created_at,related_matter_id,project_id').eq('organization_id', orgData.id).order('created_at', { ascending: false }).limit(100),
         supabase.from('ventures').select('id,name,slug,category,status,description').eq('organization_id', orgData.id).order('name'),
         supabase.from('contacts').select('id,full_name,organization_name,email,phone,contact_type,created_at').eq('organization_id', orgData.id).order('created_at', { ascending: false }).limit(100),
         supabase.from('legal_matters').select('id,reference_code,title,matter_type,court_or_forum,status,priority,next_hearing_at,confidential').eq('organization_id', orgData.id).order('next_hearing_at', { ascending: true, nullsFirst: false }).limit(100),
         supabase.from('legal_documents').select('id,title,template_key,language,status,created_at,matter_id').eq('organization_id', orgData.id).order('created_at', { ascending: false }).limit(100),
+        supabase.from('projects').select('id,name,status,priority,target_date').eq('organization_id', orgData.id).order('created_at', { ascending: false }).limit(100),
       ]);
-      for (const result of [t, v, c, m, d]) if (result.error) throw result.error;
-      setTasks(t.data || []); setVentures(v.data || []); setContacts(c.data || []);
+      for (const result of [t, v, c, m, d, p]) if (result.error) throw result.error;
+      setTasks(t.data || []); setProjects(p.data || []); setVentures(v.data || []); setContacts(c.data || []);
       setMatters(m.data || []); setDocuments(d.data || []);
     } catch (e) { setError(e.message || 'Unable to load workspace data.'); }
     finally { setLoading(false); }
@@ -76,16 +81,21 @@ export default function Dashboard() {
   async function addTask(event) {
     event.preventDefault(); if (!taskTitle.trim() || !org) return;
     setSaving(true); setError(''); setNotice('');
-    const { error: insertError } = await supabase.from('tasks').insert({ organization_id: org.id, title: taskTitle.trim(), description: taskDescription.trim() || null, due_at: taskDue ? new Date(taskDue + 'T09:00:00').toISOString() : null, priority: taskPriority, status: 'todo' });
+    const { error: insertError } = await supabase.from('tasks').insert({ organization_id: org.id, title: taskTitle.trim(), description: taskDescription.trim() || null, due_at: taskDue ? new Date(taskDue + 'T09:00:00').toISOString() : null, priority: taskPriority, status: 'todo', project_id: taskProjectId || null, related_matter_id: taskMatterId || null });
     setSaving(false);
     if (insertError) { setError(insertError.message); return; }
-    setTaskTitle(''); setTaskDescription(''); setTaskDue(''); setNotice('Task saved to the workspace.'); await load();
+    setTaskTitle(''); setTaskDescription(''); setTaskDue(''); setTaskProjectId(''); setTaskMatterId(''); setNotice('Task saved to the workspace.'); await load();
   }
 
   async function changeTaskStatus(task, status) {
-    const { error: updateError } = await supabase.from('tasks').update({ status }).eq('id', task.id);
+    if (!org?.id || !task?.id) return;
+    setError(''); setNotice('');
+    const { data: updatedTask, error: updateError } = await supabase.from('tasks')
+      .update({ status }).eq('id', task.id).eq('organization_id', org.id).select('id').maybeSingle();
     if (updateError) { setError(updateError.message); return; }
+    if (!updatedTask) { setError('Task was not updated. It may have been removed or you may no longer have access.'); return; }
     setTasks(items => items.map(item => item.id === task.id ? { ...item, status } : item));
+    setNotice('Task status updated.');
   }
 
   async function addContact(event) {
@@ -145,20 +155,20 @@ export default function Dashboard() {
       <div style={{padding:'0 14px 12px'}}>
         <input aria-label="Search workspace navigation" type="search" value={navSearch} onChange={e => setNavSearch(e.target.value)} placeholder="Search modules…" style={{width:'100%',height:38,border:'1px solid var(--os-border, #e4e6df)',borderRadius:8,padding:'0 11px',fontSize:12,background:'var(--os-surface, #fff)',color:'inherit'}} />
       </div>
-      <nav className="os-nav" aria-label="Workspace modules">{visibleNav.map(([label, icon]) => <button key={label} onClick={() => {setActive(label);setNavSearch('');}} className={active === label ? 'os-nav-item active' : 'os-nav-item'}><span>{icon}</span>{label}</button>)}
+      <nav className="os-nav" aria-label="Workspace modules">{visibleNav.map(([label, icon]) => <button key={label} type="button" onClick={() => {setActive(label);setNavSearch('');}} className={active === label ? 'os-nav-item active' : 'os-nav-item'} aria-current={active === label ? 'page' : undefined} title={label}><span aria-hidden="true" style={{pointerEvents:'none'}}>{icon}</span>{label}</button>)}
         {!visibleNav.length && <span style={{padding:'10px 16px',fontSize:12,opacity:.65}}>No matching module</span>}
       </nav>
-      <div className="os-sidebar-bottom"><div className="os-avatar">IA</div><div className="os-user"><b>{user?.user_metadata?.full_name || 'Founder'}</b><small>{user?.email || 'Founder account'}</small></div><button className="os-signout" onClick={signOut} title="Sign out">↗</button></div>
+      <div className="os-sidebar-bottom"><button type="button" className="os-profile-trigger" onClick={() => setProfileOpen(open => !open)} aria-expanded={profileOpen} aria-label="Open founder account details"><div className="os-avatar">IA</div><div className="os-user"><b>{user?.user_metadata?.full_name || 'Founder'}</b><small>{user?.email || 'Founder account'}</small></div></button><button type="button" className="os-signout" onClick={signOut} title="Sign out" aria-label="Sign out">↗</button>{profileOpen && <div className="os-profile-menu" role="group" aria-label="Founder account details"><b>Founder account</b><span>{user?.email || 'Account email unavailable'}</span><small>Signed in to the private workspace</small><button type="button" onClick={() => setProfileOpen(false)}>Close</button></div>}</div>
     </aside>
     <section className="os-main">
-      <header className="os-topbar"><div className="os-crumb">IMRAN AI <span>/</span> <b>{active}</b></div><div className="os-top-right"><span className="os-live"><i/> Connected workspace</span><button className="os-refresh" onClick={load}>↻ Refresh</button></div></header>
+      <header className="os-topbar"><div className="os-crumb">IMRAN AI <span>/</span> <b>{active}</b></div><div className="os-top-right"><span className="os-live"><i/> Connected workspace</span><button type="button" className="os-refresh" onClick={load} disabled={loading} title="Reload live workspace records from Supabase" aria-label="Refresh workspace data">↻ {loading ? 'Refreshing…' : 'Refresh data'}</button></div></header>
       <div className="os-content">
         <div className="os-eyebrow">{new Date().toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase()} <span>•</span> PRIVATE FOUNDER WORKSPACE</div>
         <div className="os-hero"><div><h1>{greeting}, Imran.</h1><p>Your work, legal practice and ventures — connected in one place.</p></div><div className="os-hero-note">ONE INTELLIGENCE. MULTIPLE BUSINESSES.</div></div>
         {error && <div className="os-alert error">{error}</div>}
         {notice && <div className="os-alert success">{notice}</div>}
         {loading ? <div className="os-loading"><span className="os-spinner"/> Connecting to your live workspace…</div> : <>
-          {active === 'Overview' && <Overview tasks={tasks} openTasks={openTasks} overdue={overdue} ventures={ventures} contacts={contacts} openMatters={openMatters} setActive={setActive} />}
+          {active === 'Overview' && <Overview tasks={tasks} projects={projects} matters={matters} openTasks={openTasks} overdue={overdue} ventures={ventures} contacts={contacts} openMatters={openMatters} setActive={setActive} onTaskStatus={changeTaskStatus} />}
           {active === 'Divisions' && <section className="os-panel">
             <PanelTitle title="Business divisions" sub="The approved blueprint is preserved. Legal & Corporate leads execution; IA² Holdings follows; C3 Lifestyle and Bold Cotton remain queued for later." count={DIVISIONS.length + ' divisions'} />
             <div className="os-venture-grid">{DIVISIONS.map(d => <article className="os-venture" key={d.id}>
@@ -180,8 +190,8 @@ export default function Dashboard() {
             <div className="os-attention"><div><b>Content production and revenue workflow</b><small>Research → Editorial brief → Writing → Script & creative → Founder / Advocate review → Approval → Scheduling → Publishing → Analytics → Lead attribution.</small></div></div>
           </section>}
           {active === 'Tasks' && <section className="os-panel"><PanelTitle title="Tasks & execution" sub="Create, prioritise and update work in the live workspace." count={openTasks.length + ' open'} />
-            <form className="os-inline-form" onSubmit={addTask}><input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="Add a task or next action…" required/><input value={taskDescription} onChange={e => setTaskDescription(e.target.value)} placeholder="Details / acceptance criteria (optional)"/><input type="date" value={taskDue} onChange={e => setTaskDue(e.target.value)} aria-label="Task due date (optional)"/><select value={taskPriority} onChange={e => setTaskPriority(e.target.value)}><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option><option value="low">Low</option></select><button disabled={saving}>{saving ? 'Saving…' : 'Add task'}</button></form>
-            <TaskList tasks={tasks} onStatus={changeTaskStatus}/></section>}
+            <form className="os-inline-form" onSubmit={addTask}><input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="Add a task or next action…" required/><input value={taskDescription} onChange={e => setTaskDescription(e.target.value)} placeholder="Details / acceptance criteria (optional)"/><select value={taskProjectId} onChange={e => setTaskProjectId(e.target.value)} aria-label="Link task to a project"><option value="">No project linked</option>{projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select><select value={taskMatterId} onChange={e => setTaskMatterId(e.target.value)} aria-label="Link task to a legal matter"><option value="">No legal matter linked</option>{matters.filter(matter => !["closed","archived"].includes(matter.status)).map(matter => <option key={matter.id} value={matter.id}>{matter.reference_code} · {matter.title}</option>)}</select><input type="date" value={taskDue} onChange={e => setTaskDue(e.target.value)} aria-label="Task due date (optional)"/><select value={taskPriority} onChange={e => setTaskPriority(e.target.value)}><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option><option value="low">Low</option></select><button disabled={saving}>{saving ? 'Saving…' : 'Add task'}</button></form>
+            <TaskList tasks={tasks} projects={projects} matters={matters} onStatus={changeTaskStatus}/></section>}
           {active === 'Legal matters' && <section className="os-panel"><PanelTitle title="Legal matters" sub="Restricted legal workspace. Matters are confidential by default." count={openMatters.length + ' open'} />
             <form className="os-form-grid" onSubmit={addMatter}><input value={matterTitle} onChange={e => setMatterTitle(e.target.value)} placeholder="Matter title / short description" required/><input value={matterType} onChange={e => setMatterType(e.target.value)} placeholder="Matter type (e.g. Civil, Criminal, Company)"/><input value={matterCourt} onChange={e => setMatterCourt(e.target.value)} placeholder="Court / forum"/><select value={matterPriority} onChange={e => setMatterPriority(e.target.value)}><option value="normal">Normal priority</option><option value="high">High priority</option><option value="urgent">Urgent priority</option><option value="low">Low priority</option></select><input type="date" value={matterHearing} onChange={e => setMatterHearing(e.target.value)} aria-label="Next hearing date (optional)"/><button disabled={saving}>{saving ? 'Saving…' : 'Create confidential matter'}</button></form>
             <MatterList matters={matters} onUpdate={changeMatter}/></section>}
@@ -202,20 +212,20 @@ export default function Dashboard() {
 
 function PanelTitle({ title, sub, count }) { return <div className="os-panel-head"><div><h2>{title}</h2><p>{sub}</p></div><span className="os-count">{count}</span></div>; }
 function Empty({ text }) { return <div className="os-empty">{text}</div>; }
-function TaskList({ tasks, onStatus }) {
+function TaskList({ tasks, projects = [], matters = [], onStatus }) {
   if (!tasks.length) return <Empty text="No tasks in this workspace yet. Add a task above to get started." />;
-  return <div className="os-task-list">{tasks.map(t=><article className="os-task-row" key={t.id}><div className="os-task-main"><b>{t.title}</b><small>{t.description || 'No additional details'}</small></div><span className={'os-priority ' + t.priority}>{priorityLabel(t.priority)}</span><small className="os-due">{dateLabel(t.due_at)}</small><select value={t.status} onChange={e => onStatus(t, e.target.value)} aria-label={'Status for ' + t.title}><option value="todo">To do</option><option value="in_progress">In progress</option><option value="blocked">Blocked</option><option value="done">Done</option><option value="cancelled">Cancelled</option></select></article>)}</div>;
+  return <div className="os-task-list">{tasks.map(t=><article className="os-task-row" key={t.id}><div className="os-task-main"><b>{t.title}</b><small>{t.description || 'No additional details'}</small><small>{[projects.find(p => p.id === t.project_id)?.name, matters.find(m => m.id === t.related_matter_id)?.reference_code].filter(Boolean).join(' · ') || 'Unlinked task'}</small></div><span className={'os-priority ' + t.priority}>{priorityLabel(t.priority)}</span><small className="os-due">{dateLabel(t.due_at)}</small><select value={t.status} onChange={e => onStatus(t, e.target.value)} aria-label={'Status for ' + t.title}><option value="todo">To do</option><option value="in_progress">In progress</option><option value="blocked">Blocked</option><option value="done">Done</option><option value="cancelled">Cancelled</option></select></article>)}</div>;
 }
 function MatterList({ matters, onUpdate }) {
   if (!matters.length) return <Empty text="No legal matters registered. New matters are marked confidential by default." />;
   return <div className="os-matter-list">{matters.map(m=><article className="os-matter-row" key={m.id}><div><b>{m.title}</b><small>{m.reference_code} · {m.matter_type || 'Matter type not set'} · {m.court_or_forum || 'Forum not set'}</small></div><span className={'os-priority ' + m.priority}>{priorityLabel(m.priority)}</span><select value={m.status} onChange={e => onUpdate(m, { status: e.target.value })} aria-label={"Status for " + m.reference_code}><option value="open">Open</option><option value="pending">Pending</option><option value="on_hold">On hold</option><option value="closed">Closed</option><option value="archived">Archived</option></select><label className="os-hearing-edit">Next date <input type="date" value={m.next_hearing_at ? new Date(m.next_hearing_at).toISOString().slice(0,10) : ""} onChange={e => onUpdate(m, { next_hearing_at: e.target.value ? new Date(e.target.value + "T09:00:00").toISOString() : null })}/></label><span className="os-confidential">Confidential</span></article>)}</div>;
 }
-function Overview({ tasks, openTasks, overdue, ventures, contacts, openMatters, setActive }) {
+function Overview({ tasks, projects = [], matters = [], openTasks, overdue, ventures, contacts, openMatters, setActive, onTaskStatus }) {
   const metrics = [['OPEN TASKS', String(openTasks.length).padStart(2,'0'), 'Work requiring action'], ['LEGAL MATTERS', String(openMatters.length).padStart(2,'0'), 'Open and pending matters'], ['RELATIONSHIPS', String(contacts.length).padStart(2,'0'), 'Contacts and leads'], ['VENTURES', String(ventures.length).padStart(2,'0'), 'Registered business units']];
   return <>
     <div className="os-section-head"><div><h2>Executive overview</h2><p>Live records from your operating workspace.</p></div><span className="os-phase">CONNECTED · CORE MODULES</span></div>
     <div className="os-metrics">{metrics.map(([label,value,sub])=><article className="os-metric" key={label}><span>{label}</span><strong>{value}</strong><small>{sub}</small></article>)}</div>
-    <div className="os-overview-grid"><section className="os-panel"><PanelTitle title="Priority desk" sub="Your most recent actions." count={openTasks.length + ' open'}/><TaskList tasks={tasks.slice(0,6)} onStatus={async (task,status)=>{const supabase=createClient();const {error}=await supabase.from('tasks').update({status}).eq('id',task.id);if(!error)window.location.reload();}}/><button className="os-link" onClick={()=>setActive('Tasks')}>Open task desk →</button></section>
+    <div className="os-overview-grid"><section className="os-panel"><PanelTitle title="Priority desk" sub="Your most recent actions." count={openTasks.length + ' open'}/><TaskList tasks={tasks.slice(0,6)} projects={projects} matters={matters} onStatus={onTaskStatus}/><button className="os-link" onClick={()=>setActive('Tasks')}>Open task desk →</button></section>
       <section className="os-panel"><PanelTitle title="Founder attention" sub="Items that may need immediate review." count={overdue.length + ' overdue'}/><div className="os-attention"><div><b>{overdue.length ? 'Overdue tasks' : 'No overdue tasks'}</b><small>{overdue.length ? 'Review due dates and move blocked work forward.' : 'Your task register has no overdue items.'}</small></div><div><b>{openMatters.length} active legal matters</b><small>Keep court dates and client commitments current.</small></div><div><b>{ventures.length} registered ventures</b><small>Business metrics remain blank until verified.</small></div></div><button className="os-link" onClick={()=>setActive('Legal matters')}>Open legal desk →</button></section></div>
     <div className="os-section-head os-modules-head"><div><h2>Operating modules</h2><p>Navigate directly to live registers.</p></div></div>
     <div className="os-module-grid">{[['Legal matters','§','Confidential matter register'],['Tasks','☷','Daily execution and priorities'],['Contacts','◎','Clients, leads and relationships'],['Ventures','◇','Business unit portfolio'],['Documents','▤','Legal document register']].map(([name,icon,desc])=><button key={name} className="os-module" onClick={()=>setActive(name)}><span>{icon}</span><b>{name}</b><small>{desc}</small><i>↗</i></button>)}</div>
