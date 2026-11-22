@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 const entities = [
   {
     key: 'holdings', number: '01', mark: 'IA²', name: 'IA² HOLDINGS',
@@ -63,6 +65,7 @@ const flow = [
 ];
 
 export default function EntityCommandHome({ tasks = [], openTasks = [], overdue = [], ventures = [], contacts = [], openMatters = [], setActive }) {
+  const [openFolders, setOpenFolders] = useState({});
   const counts = [
     { label: 'TO DO', value: tasks.filter(t => t.status === 'todo').length },
     { label: 'IN PROGRESS', value: tasks.filter(t => t.status === 'in_progress').length },
@@ -103,6 +106,22 @@ export default function EntityCommandHome({ tasks = [], openTasks = [], overdue 
     <div className="rc-entity-grid">
       {entities.map(entity => <article className={'rc-entity-card ' + entity.tone} key={entity.key}>
         <div className="rc-entity-top"><span>{entity.number} / IA² PORTFOLIO</span><span className="rc-entity-status">{entity.status}</span></div>
+        <button
+          className={'rc-folder-button' + (openFolders[entity.key] ? ' is-open' : '')}
+          type="button"
+          aria-label={(openFolders[entity.key] ? 'Close ' : 'Open ') + entity.name + ' folder'}
+          aria-expanded={!!openFolders[entity.key]}
+          onClick={() => setOpenFolders(current => ({ ...current, [entity.key]: !current[entity.key] }))}
+        >
+          <span className="rc-folder-scene" aria-hidden="true">
+            <span className="rc-folder-back"></span>
+            <span className="rc-folder-paper"></span>
+            <span className="rc-folder-body"></span>
+            <span className="rc-folder-flap"></span>
+            <span className="rc-folder-clasp"></span>
+          </span>
+          <span className="rc-folder-hint">{openFolders[entity.key] ? 'FOLDER OPEN' : 'OPEN FOLDER'}</span>
+        </button>
         <div className="rc-entity-heading">
           <div className="rc-entity-mark">{entity.mark}</div>
           <div><small>{entity.category}</small><h4>{entity.name}</h4></div>
