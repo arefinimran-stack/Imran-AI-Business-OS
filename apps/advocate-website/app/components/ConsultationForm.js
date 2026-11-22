@@ -24,7 +24,7 @@ export default function ConsultationForm({initialService=''}) {
       <label className="form-wide">PREFERRED CONTACT TIME<input maxLength={100} value={form.preferred_time} onChange={e=>update('preferred_time',e.target.value)} placeholder="e.g. weekday afternoon, Bangladesh time"/></label>
       <label className="honeypot">Leave this field empty<input tabIndex="-1" autoComplete="off" value={form.website} onChange={e=>update('website',e.target.value)}/></label>
     </div>
-    <label className="consent-row"><input type="checkbox" checked={form.consent} onChange={e=>update('consent',e.target.checked)} required/><span>I consent to THE ADVISER using these details to respond to this enquiry. I understand this submission does not create a lawyer-client relationship.</span></label>
+    <label className="consent-row"><input type="checkbox" checked={form.consent} onChange={e=>update('consent',e.target.checked)} required/><span>I consent to THE ADVISOR using these details to respond to this enquiry. I understand this submission does not create a lawyer-client relationship.</span></label>
     <button className="button button-wine" disabled={busy}>{busy?'Submitting…':'Submit enquiry ↗'}</button>
     {error&&<p className="form-error" role="alert">{error} You can also email <a href="mailto:arefin.imran@gmail.com">arefin.imran@gmail.com</a>.</p>}
     {message&&<p className="form-success" role="status">{message}</p>}
