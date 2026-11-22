@@ -57,6 +57,7 @@ export async function POST(request) {
     if (decisionError) return NextResponse.json({ error: 'Could not record the founder decision.' }, { status: 500 });
 
     if (decision === 'rejected') {
+      await supabase.from('ai_agent_runs').update({ status: 'cancelled', approved_by: user.id, approved_at: new Date().toISOString(), completed_at: new Date().toISOString() }).eq('organization_id', org.id).contains('tool_calls', [{ job_id: approval.job_id }]);
       await supabase.from('ai_orchestration_jobs').update({
         status: 'cancelled',
         result: { approval_id: approval.id, action_status: 'rejected_by_founder' },
@@ -76,6 +77,7 @@ export async function POST(request) {
         status: 'todo'
       }).select('id,title,status').single();
       if (error) {
+        await supabase.from('ai_agent_runs').update({ status: 'failed', error_code: 'TASK_CREATE_FAILED', error_summary: 'Approved task creation failed.', completed_at: new Date().toISOString() }).eq('organization_id', org.id).contains('tool_calls', [{ job_id: approval.job_id }]);
         await supabase.from('ai_orchestration_jobs').update({
           status: 'failed', error_code: 'TASK_CREATE_FAILED', error_summary: 'The approved task could not be created.',
           completed_at: new Date().toISOString()
@@ -96,6 +98,7 @@ export async function POST(request) {
         status: 'draft'
       }).select('id,title,status').single();
       if (error) {
+        await supabase.from('ai_agent_runs').update({ status: 'failed', error_code: 'DOCUMENT_DRAFT_FAILED', error_summary: 'Approved document draft creation failed.', completed_at: new Date().toISOString() }).eq('organization_id', org.id).contains('tool_calls', [{ job_id: approval.job_id }]);
         await supabase.from('ai_orchestration_jobs').update({
           status: 'failed', error_code: 'DOCUMENT_DRAFT_FAILED', error_summary: 'The approved document draft could not be saved.',
           completed_at: new Date().toISOString()
@@ -111,6 +114,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'This action has no verified execution adapter. No external action was taken.' }, { status: 409 });
     }
 
+    await supabase.from('ai_agent_runs').update({ status: 'succeeded', approved_by: user.id, approved_at: new Date().toISOString(), completed_at: new Date().toISOString() }).eq('organization_id', org.id).contains('tool_calls', [{ job_id: approval.job_id }]);
     await supabase.from('ai_orchestration_jobs').update({
       status: 'succeeded',
       result: { approval_id: approval.id, action_status: 'executed', created_record: createdRecord },
