@@ -28,7 +28,7 @@ export default function Home() {
           <div className="founder-caption"><b>Imran Arefin</b><small>Legal & Business Advisory · Bangladesh</small></div>
           <p>Clarity of scope. Careful preparation. Practical direction.</p>
         </aside>
-        <div className="hero-bottom"><span>THE ADVISER — LED BY IMRAN AREFIN</span><span>LOCAL KNOWLEDGE · INTERNATIONAL OUTLOOK</span></div>
+        <div className="hero-bottom"><span>THE ADVISOR — Led by IMRAN AREFIN</span><span>LOCAL KNOWLEDGE · INTERNATIONAL OUTLOOK</span></div>
       </section>
 
       <section className="trust-strip">
@@ -49,7 +49,7 @@ export default function Home() {
 
       <section className="founder-strip">
         <div className="founder-mark">IA</div>
-        <div><span className="section-kicker">03 / THE ADVISER</span><h2>Led by <em>Imran Arefin.</em></h2><p>A practical advisory approach that connects legal analysis with the commercial, personal and procedural context behind each matter.</p><a href="/about">Learn about the practice ↗</a></div>
+        <div><span className="section-kicker">03 / THE ADVISOR</span><h2>Led by <em>Imran Arefin.</em></h2><p>A practical advisory approach that connects legal analysis with the commercial, personal and procedural context behind each matter.</p><a href="/about">Learn about the practice ↗</a></div>
       </section>
 
       <section className="lounge-section">
@@ -72,7 +72,7 @@ export default function Home() {
       </section>
 
       <section className="final-cta"><div><span className="section-kicker">07 / START A CONVERSATION</span><h2>Make the next decision <em>with clarity.</em></h2><p>Share a brief outline of the matter. Do not send confidential documents until a secure channel and engagement scope have been agreed.</p></div><a className="button button-sand" href="/consultation">Request a consultation ↗</a></section>
-      <div className="legal-disclaimer">THE ADVISER provides general information through this website. No legal advice, representation or lawyer-client relationship arises unless a formal engagement is accepted. Services are subject to conflict checks, scope confirmation and applicable professional requirements.</div>
+      <div className="legal-disclaimer">THE ADVISOR provides general information through this website. No legal advice, representation or lawyer-client relationship arises unless a formal engagement is accepted. Services are subject to conflict checks, scope confirmation and applicable professional requirements.</div>
     </main>
   </SiteShell>;
 }
