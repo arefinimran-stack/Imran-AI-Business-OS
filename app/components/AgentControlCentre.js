@@ -11,10 +11,6 @@ export default function AgentControlCentre({ org, supabase }) {
   const [skills, setSkills] = useState([]);
   const [runs, setRuns] = useState([]);
   const [jobs, setJobs] = useState([]);
-  const [requestText, setRequestText] = useState('');
-  const [selectedAgent, setSelectedAgent] = useState('market-intelligence');
-  const [submitting, setSubmitting] = useState(false);
-  const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -38,24 +34,9 @@ export default function AgentControlCentre({ org, supabase }) {
   const runCounts = runs.reduce((acc, run) => { acc[run.status] = (acc[run.status] || 0) + 1; return acc; }, {});
   const enabledAgents = agents.filter(a => ['configured','testing','active'].includes(a.status));
 
-  async function submitRequest(event) {
-    event.preventDefault();
-    if (!org?.id || !requestText.trim() || !enabledAgents.some(a => a.agent_key === selectedAgent)) return;
-    setSubmitting(true); setError(''); setNotice('');
-    const { data, error: invokeError } = await supabase.functions.invoke('orchestrator-intake', {
-      body: { organization_id: org.id, agent_key: selectedAgent, request_text: requestText.trim(), idempotency_key: crypto.randomUUID() },
-    });
-    setSubmitting(false);
-    if (invokeError) { setError(invokeError.message || 'Unable to queue orchestration request.'); return; }
-    setNotice(data?.message || (data?.replayed ? 'This request was already received.' : 'Request safely queued.'));
-    setRequestText('');
-    await load();
-  }
-
   return <section className="os-panel">
     <div className="os-panel-head"><div><h2>Agent, Skill & Tool Registry</h2><p>Specialist roster, approved capabilities, connector register and execution history.</p></div><span className="os-count">{agents.length} agents · {tools.length} tools</span></div>
-    <div className="os-attention"><div><b>Legacy Supabase intake: queue-only · primary Vercel/NVIDIA relay is in preview</b><small>This legacy Edge Function records authenticated queue requests only. The new Vercel/NVIDIA Command Relay is being built separately and must pass preview tests before it is treated as operational. A queue receipt is never proof of execution.</small></div></div>
-    {notice && <div className="os-alert success" role="status">{notice}</div>}
+    <div className="os-attention"><div><b>Legacy Supabase intake: queue-only · primary Vercel/NVIDIA relay is in preview</b><small>This legacy Edge Function records authenticated queue requests only. The new Vercel/NVIDIA Command Relay is in the preview branch and must pass runtime tests before it is treated as operational. A queue receipt is never proof of execution.</small></div></div>
     {error && <div className="os-error" role="alert">{error}</div>}
     {loading ? <div className="os-empty">Loading agent and connector records…</div> : <>
       <div className="os-metrics">
@@ -66,12 +47,7 @@ export default function AgentControlCentre({ org, supabase }) {
         <article className="os-metric"><span>VERIFIED SKILLS</span><strong>{skills.filter(s => s.is_verified).length}/{skills.length}</strong><small>Unverified skills stay draft-only</small></article>
         <article className="os-metric"><span>RUN RECORDS</span><strong>{runs.length}</strong><small>{Object.entries(runCounts).map(([k,v]) => k + ': ' + v).join(' · ') || 'No executions yet'}</small></article>
       </div>
-      <div className="os-section-head"><div><h2>Command intake</h2><p>Submit a bounded request to an enabled specialist. This creates a queue record only; model execution is not yet connected.</p></div></div>
-      <form className="os-form-grid" onSubmit={submitRequest}>
-        <select value={selectedAgent} onChange={e => setSelectedAgent(e.target.value)} disabled={!enabledAgents.length}>{enabledAgents.map(agent => <option key={agent.id} value={agent.agent_key}>{agent.name}</option>)}</select>
-        <textarea value={requestText} onChange={e => setRequestText(e.target.value)} rows={3} maxLength={6000} placeholder="Describe the research or internal analysis task…" required />
-        <button type="submit" disabled={submitting || !enabledAgents.length || !requestText.trim()}>{submitting ? 'Queueing…' : 'Submit to command queue'}</button>
-      </form>
+      <div className="os-attention"><div><b>Primary command interface: Command Relay</b><small>Use the dedicated Command Relay screen for new instructions and YES / NO approvals. The legacy Supabase queue endpoint is retained for historical compatibility only; do not use it for new commands.</small></div></div>
       <div className="os-section-head"><div><h2>Recent command requests</h2><p>Queue receipts only. These records do not mean the specialist has executed.</p></div></div>
       {jobs.length ? <div className="os-task-list">{jobs.map(job => <article className="os-task-row" key={job.id}><div className="os-task-main"><b>{agents.find(a => a.id === job.primary_agent_id)?.name || 'Specialist'}</b><small>{job.request_text}</small><small>Trace: {job.correlation_id}</small></div><span className="os-chip">{statusLabel(job.status)}</span><small>{new Date(job.created_at).toLocaleString('en-GB')}</small></article>)}</div> : <div className="os-empty">No command requests have been queued.</div>}
       <div className="os-section-head"><div><h2>Specialist agents</h2><p>Each agent has a bounded responsibility and an explicit approval posture.</p></div></div>
