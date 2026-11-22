@@ -2,56 +2,53 @@
 
 const entities = [
   {
-    key: 'adviser',
-    number: '01',
-    mark: '⚖',
-    name: 'THE ADVISER',
-    category: 'LEGAL & CORPORATE',
-    description: 'The legal advisory website and client-facing app, led by Advocate Imran Arefin.',
-    status: 'BUILD STREAM',
-    tone: 'wine',
-    url: 'https://adv-imran-arefin.vercel.app',
-    linkLabel: 'Open protected preview',
-    note: 'Vercel project has been mapped to its own website source folder. New preview build is pending.'
+    key: 'holdings', number: '01', mark: 'IA²', name: 'IA² HOLDINGS',
+    category: 'PARENT HOLDING COMPANY',
+    description: 'The parent group coordinating venture development, real estate, technology and AI, and its portfolio companies.',
+    status: 'PARENT GROUP', tone: 'gold',
+    url: 'https://ia2-holdings-h66tog2ln-arefinimran-1852.vercel.app',
+    linkLabel: 'Open Holdings preview',
+    note: 'Current Vercel preview. This is a review build, not a production launch.'
   },
   {
-    key: 'holdings',
-    number: '02',
-    mark: 'IA²',
-    name: 'IA² HOLDINGS',
-    category: 'PARENT GROUP',
-    description: 'The group identity, portfolio overview, governance and venture coordination.',
-    status: 'BUILD STREAM',
-    tone: 'gold',
-    url: 'https://ia2-holdings.vercel.app',
-    linkLabel: 'Open protected preview',
-    note: 'Separate website source mapping has been corrected. New preview build is pending.'
+    key: 'venture', number: '02', mark: 'VC', name: 'IA² VENTURE',
+    category: 'VENTURE DEVELOPMENT & CAPITAL',
+    description: 'Opportunity discovery, feasibility, investment readiness and venture development.',
+    status: 'PORTFOLIO UNIT', tone: 'wine', url: '',
+    linkLabel: 'Open venture workspace',
+    note: 'Internal workspace view; a separate public website is not yet deployed.'
   },
   {
-    key: 'cotton',
-    number: '03',
-    mark: 'BC',
-    name: 'BOLD COTTON',
+    key: 'real-estate', number: '03', mark: 'RE', name: 'REAL ESTATE',
+    category: 'PROPERTY & DEVELOPMENT',
+    description: 'Property research, feasibility, due diligence and development coordination.',
+    status: 'PORTFOLIO UNIT', tone: 'teal', url: '',
+    linkLabel: 'Open real-estate workspace',
+    note: 'Internal workspace view; a separate public website is not yet deployed.'
+  },
+  {
+    key: 'technology', number: '04', mark: 'AI', name: 'TECHNOLOGY & AI',
+    category: 'AI INTELLIGENCE & DIGITAL SYSTEMS',
+    description: 'Technology products, AI workflows, automation and responsible digital transformation.',
+    status: 'PORTFOLIO UNIT', tone: 'blue', url: '',
+    linkLabel: 'Open technology workspace',
+    note: 'Internal workspace view; provider connections and production workflows remain approval-gated.'
+  },
+  {
+    key: 'c3', number: '05', mark: 'C3', name: 'C3 LIFESTYLE',
+    category: 'LIFESTYLE & CONSUMER VENTURE',
+    description: 'A portfolio venture for lifestyle and consumer opportunities.',
+    status: 'RESEARCH ONLY', tone: 'violet', url: '',
+    linkLabel: 'Open research workspace',
+    note: 'Execution is on hold. Research only; no products, orders or commercial launch.'
+  },
+  {
+    key: 'cotton', number: '06', mark: 'BC', name: 'BOLD COTTON',
     category: 'APPAREL & GARMENTS',
-    description: 'Independent apparel identity, product presence and buyer-facing digital channel.',
-    status: 'INCUBATION PREVIEW',
-    tone: 'teal',
-    url: 'https://bold-cotton.vercel.app',
-    linkLabel: 'Open private preview',
-    note: 'Private incubation page only. No products, orders or commercial launch.'
-  },
-  {
-    key: 'c3',
-    number: '04',
-    mark: 'C3',
-    name: 'C3 LIFESTYLE',
-    category: 'LIFESTYLE VENTURE',
-    description: 'Independent lifestyle identity, curated products and content-led presence.',
-    status: 'INCUBATION PREVIEW',
-    tone: 'blue',
-    url: 'https://c3-lifestyle.vercel.app',
-    linkLabel: 'Open private preview',
-    note: 'Private incubation page only. No products, orders or commercial launch.'
+    description: 'An apparel and garment venture exploring buyer, category and product opportunities.',
+    status: 'RESEARCH ONLY', tone: 'sand', url: '',
+    linkLabel: 'Open research workspace',
+    note: 'Execution is on hold. Research only; no products, orders or commercial launch.'
   }
 ];
 
@@ -93,7 +90,7 @@ export default function EntityCommandHome({ tasks = [], openTasks = [], overdue 
     </section>
 
     <div className="rc-kpi-grid">
-      <article><span>CORE ENTITIES</span><strong>04</strong><small>Separate digital identities</small></article>
+      <article><span>PORTFOLIO UNITS</span><strong>06</strong><small>Parent group + five portfolio units</small></article>
       <article><span>OPEN WORK</span><strong>{openTasks.length}</strong><small>{overdue.length} overdue · internal register</small></article>
       <article><span>LEGAL MATTERS</span><strong>{openMatters.length}</strong><small>Confidential workspace records</small></article>
       <article><span>RELATIONSHIPS</span><strong>{contacts.length}</strong><small>CRM contacts and leads</small></article>
