@@ -138,7 +138,6 @@ export default function Dashboard() {
   const openTasks = tasks.filter(t => !['done', 'cancelled'].includes(t.status));
   const openMatters = matters.filter(m => !['closed', 'archived'].includes(m.status));
   const overdue = tasks.filter(t => t.due_at && new Date(t.due_at) < new Date() && !['done', 'cancelled'].includes(t.status));
-  const greeting = new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 17 ? 'Good afternoon' : 'Good evening';
   const visibleNav = nav.filter(([label]) => label.toLowerCase().includes(navSearch.trim().toLowerCase()));
 
   return <main className="os-shell">
