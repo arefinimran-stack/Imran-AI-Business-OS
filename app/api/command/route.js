@@ -7,6 +7,14 @@ export const dynamic = 'force-dynamic';
 
 const ALLOWED_ACTIONS = new Set(['task.create', 'document.draft']);
 
+function stableStringify(value) {
+  if (Array.isArray(value)) return '[' + value.map(stableStringify).join(',') + ']';
+  if (value && typeof value === 'object') {
+    return '{' + Object.keys(value).sort().map(key => JSON.stringify(key) + ':' + stableStringify(value[key])).join(',') + '}';
+  }
+  return JSON.stringify(value);
+}
+
 function parseModelJson(raw) {
   const text = String(raw || '').trim();
   const start = text.indexOf('{');
@@ -159,7 +167,7 @@ export async function POST(request) {
     const approvalCards = [];
 
     for (const proposal of validProposals) {
-      const actionHash = createHash('sha256').update(JSON.stringify(proposal.payload)).digest('hex');
+      const actionHash = createHash('sha256').update(stableStringify(proposal.payload)).digest('hex');
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       const { data: approval, error: approvalError } = await supabase.from('ai_approval_requests').insert({
         organization_id: org.id,
