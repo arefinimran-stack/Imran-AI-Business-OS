@@ -58,6 +58,7 @@ export default function SystemHealth({ org, supabase }) {
   const verifiedSkills = skills.filter(x => x.is_verified).length;
   const configuredAgents = agents.filter(x => ['configured', 'testing', 'active'].includes(x.status)).length;
   const providerReady = Boolean(health?.provider_key_present);
+  const databaseReady = !loading && !error && Boolean(org?.id);
 
   return <section className="rc-health">
     <div className="rc-relay-heading">
@@ -68,7 +69,7 @@ export default function SystemHealth({ org, supabase }) {
     {error && <div className="rc-relay-error" role="alert">{error}</div>}
 
     <div className="rc-health-grid">
-      <article className="rc-health-card"><span>DATABASE</span><b className={statusTone(health?.supabase_configured ? 'connected' : 'unknown')}>{health?.supabase_configured ? 'Connected' : 'Not verified'}</b><small>Supabase session and workspace records</small></article>
+      <article className="rc-health-card"><span>DATABASE</span><b className={statusTone(health?.supabase_configured ? 'connected' : 'unknown')}>{databaseReady ? 'Connected' : 'Not verified'}</b><small>Supabase session and workspace records</small></article>
       <article className="rc-health-card"><span>AI PROVIDER</span><b className={statusTone(providerReady ? 'ready' : 'missing')}>{providerReady ? 'NVIDIA key present' : 'NVIDIA key not detected'}</b><small>{health?.model || 'Model not configured'}</small></article>
       <article className="rc-health-card"><span>AGENT RUNTIME</span><b className="watch">Limited / staged</b><small>New Vercel relay is being prepared; legacy Supabase worker is readiness-only.</small></article>
       <article className="rc-health-card"><span>APPROVAL GATE</span><b className={pendingApprovals ? 'watch' : 'good'}>{pendingApprovals} pending</b><small>Founder decisions awaiting action</small></article>
@@ -85,7 +86,7 @@ export default function SystemHealth({ org, supabase }) {
         </div>
         <p className="rc-health-note">A registry record is not proof of a working app-side integration. Provider credentials and action permissions are verified separately.</p>
         <div className="rc-health-list">
-          {tools.map(tool => <div key={tool.id}><span>{tool.display_name}</span><b className={statusTone(tool.status)}>{tool.status}</b><small>{tool.provider} · {tool.connection_type} · {tool.last_verified_at ? 'verified ' + new Date(tool.last_verified_at).toLocaleDateString('en-GB') : 'app-side access unverified'}</small></div>)}
+          {tools.map(tool => <div key={tool.id}><span>{tool.display_name}</span><b className={statusTone(tool.status)}>{tool.status}</b><small>{tool.provider} · {tool.connection_type} · {tool.last_verified_at ? 'verified ' + new Date(tool.last_verified_at).toLocaleDateString('en-GB') : 'app-side access unverified'}</small><small>{tool.notes || 'No connection note recorded.'}</small></div>)}
         </div>
       </section>
 
