@@ -1,4 +1,6 @@
-# IMRAN AI BUSINESS OS
+# IA² VISUAL RC
+
+Private founder command centre for IA² Holdings. The operating interface is entity-first: THE ADVISER, IA² Holdings, C3 Lifestyle and Bold Cotton each retain separate digital identities. GitHub is the source of truth, Vercel hosts the web applications, and Supabase provides authentication and operational data. Notion is optional and is not a runtime dependency.
 
 Personal AI Business Operating System for Imran Arefin's legal practice, founder operations and six-division venture ecosystem.
 
