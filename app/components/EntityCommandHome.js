@@ -66,6 +66,19 @@ const flow = [
 
 export default function EntityCommandHome({ tasks = [], openTasks = [], overdue = [], ventures = [], contacts = [], openMatters = [], setActive }) {
   const [openFolders, setOpenFolders] = useState({});
+  const [activeRcTab, setActiveRcTab] = useState('Dashboard');
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [commandQuery, setCommandQuery] = useState('');
+  const commandEntities = [
+    { name: 'Command Center', kind: 'Control node', tab: 'Dashboard', detail: 'IA² Visual RC interface' },
+    { name: 'RC Vehicle', kind: 'Fleet entity', tab: 'Fleet Control', detail: 'Hardware connection pending' },
+    { name: 'Battery', kind: 'Vehicle component', tab: 'Fleet Control', detail: 'Battery telemetry not connected' },
+    { name: 'Sensors', kind: 'Vehicle subsystem', tab: 'Fleet Control', detail: 'Sensor feed not connected' },
+    { name: 'Camera Feed', kind: 'Vision entity', tab: 'AI Vision (ODR)', detail: 'Camera source not connected' },
+    { name: 'ODR Engine', kind: 'AI vision subsystem', tab: 'AI Vision (ODR)', detail: 'Inference provider not connected' },
+    { name: 'Cloud', kind: 'Infrastructure entity', tab: 'Settings', detail: 'Cloud telemetry not connected' }
+  ];
+  const commandResults = commandEntities.filter(item => (item.name + ' ' + item.kind + ' ' + item.detail).toLowerCase().includes(commandQuery.trim().toLowerCase()));
   const counts = [
     { label: 'TO DO', value: tasks.filter(t => t.status === 'todo').length },
     { label: 'IN PROGRESS', value: tasks.filter(t => t.status === 'in_progress').length },
@@ -74,7 +87,37 @@ export default function EntityCommandHome({ tasks = [], openTasks = [], overdue 
   ];
   const maxCount = Math.max(1, ...counts.map(x => x.value));
 
-  return <div className="rc-home">
+  return <div className="rc-home" data-rc-view={activeRcTab}>\n    <div className="rc-command-tabs" role="tablist" aria-label="IA² Visual RC primary navigation">
+      {['Dashboard', 'Fleet Control', 'AI Vision (ODR)', 'Analytics', 'Settings'].map(tab => <button key={tab} type="button" role="tab" aria-selected={activeRcTab === tab} className={'rc-command-tab' + (activeRcTab === tab ? ' active' : '')} onClick={() => setActiveRcTab(tab)}>{tab}</button>)}
+      <div className="rc-command-search">
+        <button type="button" className="rc-search-toggle" aria-expanded={commandOpen} onClick={() => { setCommandOpen(value => !value); setCommandQuery(''); }}>⌕ <span>Search</span></button>
+        {commandOpen && <div className="rc-command-popover">
+          <input autoFocus value={commandQuery} onChange={event => setCommandQuery(event.target.value)} placeholder="Search entities: Battery, Camera Feed…" aria-label="Search operational entities"/>
+          <div className="rc-command-results">
+            {(commandQuery.trim() ? commandResults : commandEntities.slice(0, 4)).map(item => <button type="button" key={item.name} onClick={() => { setActiveRcTab(item.tab); setCommandOpen(false); setCommandQuery(''); }}>
+              <span><b>{item.name}</b><small>{item.kind} · {item.detail}</small></span><i>↗</i>
+            </button>)}
+            {commandQuery.trim() && !commandResults.length && <p>No matching entity found.</p>}
+          </div>
+        </div>}
+      </div>
+    </div>
+    {activeRcTab !== 'Dashboard' && <section className="rc-command-view" role="tabpanel">
+      <header><div><span>IA² VISUAL RC · {activeRcTab.toUpperCase()}</span><h3>{activeRcTab === 'Fleet Control' ? 'Fleet control' : activeRcTab === 'AI Vision (ODR)' ? 'AI vision & object detection' : activeRcTab === 'Analytics' ? 'Operational analytics' : 'System settings'}</h3><p>Interface components are ready. Hardware and provider feeds remain unconnected until configured and verified.</p></div><b className="rc-disconnected-badge">NO LIVE TELEMETRY</b></header>
+      {activeRcTab === 'Fleet Control' && <div className="rc-operational-grid">
+        {['RC Unit 01', 'Battery', 'Motor & Drive', 'Sensors'].map((name, index) => <article className="rc-operational-card" key={name}><span>{['VEHICLE','POWER','MOTION','INPUT'][index]}</span><b>{name}</b><strong>Not connected</strong><small>No live hardware data available</small></article>)}
+      </div>}
+      {activeRcTab === 'AI Vision (ODR)' && <div className="rc-operational-grid">
+        {['Camera Feed', 'AI Vision Engine', 'ODR Analysis'].map(name => <article className="rc-operational-card" key={name}><span>VISION SUBSYSTEM</span><b>{name}</b><strong>Not connected</strong><small>Camera or inference source required</small></article>)}
+      </div>}
+      {activeRcTab === 'Analytics' && <div className="rc-analytics-empty"><b>Analytics waiting for verified telemetry</b><p>Charts, event history, vehicle performance and ODR metrics will appear here after a real data source is connected. No sample figures are being presented as live data.</p></div>}
+      {activeRcTab === 'Settings' && <div className="rc-operational-grid">
+        <article className="rc-operational-card"><span>INTERFACE</span><b>Visual theme</b><strong>Light · 3D embossed</strong><small>Dark-mode configuration remains separate</small></article>
+        <article className="rc-operational-card"><span>CONNECTIVITY</span><b>Hardware & cloud</b><strong>Setup required</strong><small>No credentials or device endpoints configured in this build</small></article>
+      </div>}
+      <div className="rc-system-flow"><span>COMMAND CENTER</span><i>→</i><span>RC VEHICLE</span><i>→</i><span>SENSORS</span><i>→</i><span>CLOUD</span></div>
+    </section>}
+
     <section className="rc-hero">
       <div className="rc-hero-copy">
         <div className="rc-kicker">IA² HOLDINGS · PRIVATE OPERATING ENVIRONMENT</div>
