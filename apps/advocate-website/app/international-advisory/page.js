@@ -1,5 +1,5 @@
 import SiteShell from '../components/SiteShell';
-export const metadata={title:'Foreign Investment & International Business Advisory in Bangladesh | THE ADVISER',description:'Bangladesh market-entry and foreign investment legal advisory for overseas founders, investors and international businesses.'};
+export const metadata={title:'Foreign Investment & International Business Advisory in Bangladesh | THE ADVISOR',description:'Bangladesh market-entry and foreign investment legal advisory for overseas founders, investors and international businesses.'};
 export default function InternationalAdvisory(){return <SiteShell><main className="inner-page international-page">
   <span className="section-kicker">INTERNATIONAL ADVISORY · BANGLADESH DESK</span>
   <h1>Foreign investment in Bangladesh. <em>Start with a clear legal map.</em></h1>
