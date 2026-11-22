@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 const statusLabel = value => (value || '').replaceAll('_', ' ');
 const approvalLabel = value => ({ read_only: 'Read only', draft_only: 'Draft only', human_review: 'Human approval', restricted: 'Restricted' }[value] || value);
+const connectionStatus = tool => tool.tool_key === 'notion' && !tool.last_verified_at ? 'Authorization pending' : tool.last_verified_at ? statusLabel(tool.status) : 'Not verified';
 
 export default function AgentControlCentre({ org, supabase }) {
   const [agents, setAgents] = useState([]);
@@ -78,8 +79,8 @@ export default function AgentControlCentre({ org, supabase }) {
         <small>Approval: {approvalLabel(agent.approval_policy)}</small>
         <div className="os-attention"><div><b>Capabilities</b><small>{(agent.capabilities || []).join(' · ') || 'Not specified'}</small></div><div><b>Allowed tool keys</b><small>{(agent.allowed_tools || []).join(' · ') || 'None registered'}</small></div></div>
       </article>)}</div>
-      <div className="os-section-head"><div><h2>Connected tool register</h2><p>ChatGPT-side connectors and app-side integrations are tracked separately.</p></div></div>
-      <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Tool</th><th>Provider</th><th>Connection type</th><th>Status</th><th>Permitted actions</th></tr></thead><tbody>{tools.map(tool => <tr key={tool.id}><td><b>{tool.display_name}</b><small>{tool.tool_key}</small></td><td>{tool.provider}</td><td>{statusLabel(tool.connection_type)}</td><td><span className="os-chip">{statusLabel(tool.status)}</span></td><td>{(tool.permitted_actions || []).join(' · ')}</td></tr>)}</tbody></table></div>
+      <div className="os-section-head"><div><h2>Connected tool register</h2><p>Connector status is verified only after a successful access check. Notion remains pending authorization.</p></div></div>
+      <div className="os-table-wrap"><table className="os-table"><thead><tr><th>Tool</th><th>Provider</th><th>Connection type</th><th>Status</th><th>Permitted actions</th></tr></thead><tbody>{tools.map(tool => <tr key={tool.id}><td><b>{tool.display_name}</b><small>{tool.tool_key}</small></td><td>{tool.provider}</td><td>{statusLabel(tool.connection_type)}</td><td><span className="os-chip">{connectionStatus(tool)}</span></td><td>{(tool.permitted_actions || []).join(' · ')}</td></tr>)}</tbody></table></div>
       <div className="os-section-head"><div><h2>Recent execution history</h2><p>Only actual persisted run records appear here. No test runs have been fabricated.</p></div></div>
       {runs.length ? <div className="os-task-list">{runs.map(run => <article className="os-task-row" key={run.id}><div className="os-task-main"><b>{agents.find(a => a.id === run.agent_id)?.name || 'Agent'}</b><small>{run.input_summary || 'No input summary'}</small></div><span className="os-chip">{statusLabel(run.status)}</span><small>{new Date(run.created_at).toLocaleString('en-GB')}</small></article>)}</div> : <div className="os-empty">No agent executions recorded. The execution service must be implemented before runs can be started safely.</div>}
       <div className="os-panel-head"><div><p>Security note: this register stores connector metadata only. API keys, OAuth tokens and passwords must remain in server-side secret storage and must never be shown in this screen.</p></div><button className="os-link" onClick={load}>Refresh records ↻</button></div>
