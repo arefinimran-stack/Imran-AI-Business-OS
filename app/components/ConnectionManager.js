@@ -13,7 +13,7 @@ const links={
  elevenlabs:['https://elevenlabs.io','Open ElevenLabs'],
  pixverse:['https://pixverse.ai','Open PixVerse'],
  runway:['https://runwayml.com','Open Runway'],
- 'upload-post':['https://www.upload-post.com','Open Upload-Post']
+ 'nvidia-nim':['https://build.nvidia.com','Open NVIDIA NIM']
 };
 const icons={github:'⌘',vercel:'▲',supabase:'◈',appdeploy:'⧉',notion:'▤',canva:'✦',adobe:'◩',figma:'◫',elevenlabs:'◖',pixverse:'✧',runway:'▧','upload-post':'↗','nvidia-nim':'✺'};
 const tone={github:'ink',vercel:'ink',supabase:'teal',appdeploy:'sand',notion:'ink',canva:'violet',adobe:'red',figma:'violet',elevenlabs:'blue',pixverse:'blue',runway:'ink','upload-post':'teal','nvidia-nim':'green'};
@@ -29,7 +29,7 @@ export default function ConnectionManager({org,supabase}){
    if(action==='connect'&&apiKey.trim().length<20)throw new Error('Enter your NVIDIA NIM API key first.');
    const {data,error}=await supabase.functions.invoke('provider-vault',{body:{action,provider:'nvidia',api_key:action==='connect'?apiKey.trim():undefined,model:'moonshotai/kimi-k2.5'}});
    setApiKey('');
-   if(error)throw new Error(error.message||'Provider request failed.');
+   if(error){let detail=error.message||'Provider request failed.';try{const payload=await error.context?.json();if(payload?.error)detail=payload.error;}catch{}throw new Error(detail);}
    if(!data?.success&&action!=='status')throw new Error(data?.error||'Provider connection failed.');
    setMessage(data?.message||'Provider status refreshed.');
    await load();
