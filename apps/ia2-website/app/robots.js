@@ -1,0 +1,1 @@
+export default function robots(){return {rules:{userAgent:'*',allow:'/'},sitemap:'https://ia2-holdings.vercel.app/sitemap.xml'};}
