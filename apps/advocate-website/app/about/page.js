@@ -1,0 +1,8 @@
+import SiteShell from '../components/SiteShell';
+export const metadata={title:'About | THE ADVISER',description:'Learn about the advisory approach led by Imran Arefin in Bangladesh.'};
+export default function About(){return <SiteShell><main className="inner-page">
+  <span className="section-kicker">THE PRACTICE · ABOUT</span><h1>Clarity. Strategy. <em>Confidence.</em></h1>
+  <p className="inner-lead">THE ADVISER is led by Imran Arefin and is designed to make legal and business matters easier to scope, understand and approach.</p>
+  <div className="inner-two"><section><h2>A practical approach to complex matters</h2><p>Legal issues are shaped by facts, documents, jurisdiction, commercial context and the outcome sought. The practice approach begins with understanding those elements before defining the appropriate legal work.</p><p>Engagements may involve legal research, drafting, document review, advisory support, coordination or litigation-related preparation, subject to professional scope and acceptance.</p></section><section><h2>Three working principles</h2><ul className="principle-list"><li><b>Clarity</b><span>Explain the issue, scope and available next steps.</span></li><li><b>Strategy</b><span>Prioritise the facts, risks and practical outcome.</span></li><li><b>Confidence</b><span>Prepare carefully and communicate responsibly.</span></li></ul></section></div>
+  <section className="inner-cta"><h2>Discuss the matter before choosing the route.</h2><a className="button button-wine" href="/consultation">Request a consultation ↗</a></section>
+</main></SiteShell>}
