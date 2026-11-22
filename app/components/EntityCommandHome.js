@@ -34,11 +34,11 @@ const entities = [
     name: 'BOLD COTTON',
     category: 'APPAREL & GARMENTS',
     description: 'Independent apparel identity, product presence and buyer-facing digital channel.',
-    status: 'RESEARCH / QUEUED',
+    status: 'INCUBATION PREVIEW',
     tone: 'teal',
-    url: null,
-    linkLabel: 'View venture record',
-    note: 'Its own digital presence is in the entity build queue; commercial execution remains controlled.'
+    url: 'https://bold-cotton.vercel.app',
+    linkLabel: 'Open private preview',
+    note: 'Private incubation page only. No products, orders or commercial launch.'
   },
   {
     key: 'c3',
@@ -47,11 +47,11 @@ const entities = [
     name: 'C3 LIFESTYLE',
     category: 'LIFESTYLE VENTURE',
     description: 'Independent lifestyle identity, curated products and content-led presence.',
-    status: 'RESEARCH / QUEUED',
+    status: 'INCUBATION PREVIEW',
     tone: 'blue',
-    url: null,
-    linkLabel: 'View venture record',
-    note: 'Its own digital presence is in the entity build queue; commercial execution remains controlled.'
+    url: 'https://c3-lifestyle.vercel.app',
+    linkLabel: 'Open private preview',
+    note: 'Private incubation page only. No products, orders or commercial launch.'
   }
 ];
 
