@@ -51,8 +51,8 @@ export default function AgentControlCentre({ org, supabase }) {
   }
 
   return <section className="os-panel">
-    <div className="os-panel-head"><div><h2>AI Agent & Tool Control Centre</h2><p>Specialist roster, approved capabilities, connector register and execution history.</p></div><span className="os-count">{agents.length} agents · {tools.length} tools</span></div>
-    <div className="os-attention"><div><b>Runtime status: authenticated intake deployed · execution not enabled</b><small>The orchestrator now accepts authenticated, organisation-scoped requests and records them in a durable queue. It does not yet call a model or execute tools. A queued request is not a completed agent run.</small></div></div>
+    <div className="os-panel-head"><div><h2>Agent, Skill & Tool Registry</h2><p>Specialist roster, approved capabilities, connector register and execution history.</p></div><span className="os-count">{agents.length} agents · {tools.length} tools</span></div>
+    <div className="os-attention"><div><b>Legacy Supabase intake: queue-only · primary Vercel/NVIDIA relay is in preview</b><small>This legacy Edge Function records authenticated queue requests only. The new Vercel/NVIDIA Command Relay is being built separately and must pass preview tests before it is treated as operational. A queue receipt is never proof of execution.</small></div></div>
     {notice && <div className="os-alert success" role="status">{notice}</div>}
     {error && <div className="os-error" role="alert">{error}</div>}
     {loading ? <div className="os-empty">Loading agent and connector records…</div> : <>
