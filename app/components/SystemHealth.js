@@ -56,7 +56,9 @@ export default function SystemHealth({ org, supabase }) {
   const pendingApprovals = approvals.filter(x => x.decision === 'pending').length;
   const queuedJobs = jobs.filter(x => ['queued', 'planning', 'running', 'awaiting_approval'].includes(x.status)).length;
   const verifiedSkills = skills.filter(x => x.is_verified).length;
-  const configuredAgents = agents.filter(x => ['configured', 'testing', 'active'].includes(x.status)).length;
+  const configuredAgents = agents.filter(x => x.status === 'configured').length;
+  const testingAgents = agents.filter(x => x.status === 'testing').length;
+  const activeAgents = agents.filter(x => x.status === 'active').length;
   const providerReady = Boolean(health?.provider_key_present);
   const databaseReady = !loading && !error && Boolean(org?.id);
 
@@ -81,6 +83,8 @@ export default function SystemHealth({ org, supabase }) {
         <div className="rc-health-metrics">
           <div><b>{agents.length}</b><small>Agents registered</small></div>
           <div><b>{configuredAgents}</b><small>Configured agents</small></div>
+          <div><b>{testingAgents}</b><small>Testing agents</small></div>
+          <div><b>{activeAgents}</b><small>Active agents</small></div>
           <div><b>{tools.length}</b><small>Tool records</small></div>
           <div><b>{verifiedSkills}/{skills.length}</b><small>Verified skills</small></div>
         </div>
