@@ -311,3 +311,19 @@ html[data-language="bn"] .service-card p,html[data-language="bn"] .section-headi
 .contact-direct a{color:var(--wine-700);font-weight:700}
 html[data-language="bn"] .credential-card h2,html[data-language="bn"] .lounge-feature-download h2,html[data-language="bn"] .legal-article h2{font-family:'Noto Sans Bengali','Hind Siliguri',sans-serif}
 @media(max-width:700px){.lounge-article-grid,.lounge-feature-download{grid-template-columns:1fr}.guide-stamp{justify-self:start}.final-cta{align-items:flex-start;flex-direction:column}.final-cta-actions{min-width:0}}
+
+
+.guide-head{display:grid;gap:8px;margin-bottom:22px}
+.guide-head .inner-lead{margin:8px 0 12px}
+.guide-print-button{justify-self:start}
+.printable-guide{max-width:1040px}
+@media print{
+  @page{size:A4;margin:16mm}
+  body{background:#fff!important;color:#171717!important}
+  .site-nav,.site-footer,.guide-print-button,.legal-disclaimer{display:none!important}
+  .inner-page{padding:0!important;min-height:0!important}
+  .printable-guide{max-width:none!important}
+  .scope-note{break-inside:avoid}
+  .article-steps li{break-inside:avoid}
+  a{color:#7F011F!important;text-decoration:none}
+}
