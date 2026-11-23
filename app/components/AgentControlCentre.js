@@ -41,7 +41,9 @@ export default function AgentControlCentre({ org, supabase }) {
       <div className="os-metrics">
         <article className="os-metric"><span>QUEUED REQUESTS</span><strong>{jobs.filter(j => ['queued','planning','awaiting_approval','running'].includes(j.status)).length}</strong><small>Durable intake records</small></article>
         <article className="os-metric"><span>REGISTERED AGENTS</span><strong>{agents.length}</strong><small>Specialist definitions</small></article>
-        <article className="os-metric"><span>CONFIGURED</span><strong>{agents.filter(a => ['configured','testing','active'].includes(a.status)).length}</strong><small>Registry configuration only</small></article>
+        <article className="os-metric"><span>CONFIGURED</span><strong>{agents.filter(a => a.status === 'configured').length}</strong><small>Configured, not merely testing</small></article>
+        <article className="os-metric"><span>TESTING</span><strong>{agents.filter(a => a.status === 'testing').length}</strong><small>Needs passing test evidence</small></article>
+        <article className="os-metric"><span>ACTIVE</span><strong>{agents.filter(a => a.status === 'active').length}</strong><small>Production-enabled agents</small></article>
         <article className="os-metric"><span>TOOL RECORDS</span><strong>{tools.length}</strong><small>Connection metadata</small></article>
         <article className="os-metric"><span>VERIFIED SKILLS</span><strong>{skills.filter(s => s.is_verified).length}/{skills.length}</strong><small>Unverified skills stay draft-only</small></article>
         <article className="os-metric"><span>RUN RECORDS</span><strong>{runs.length}</strong><small>{Object.entries(runCounts).map(([k,v]) => k + ': ' + v).join(' · ') || 'No executions yet'}</small></article>
