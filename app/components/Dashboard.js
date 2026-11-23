@@ -9,11 +9,12 @@ import EntityCommandHome from './EntityCommandHome';
 import CommandRelay from './CommandRelay';
 import SystemHealth from './SystemHealth';
 import ConsultationInbox from './ConsultationInbox';
+import DigitalStudio from './DigitalStudio';
 import ConnectionManager from './ConnectionManager';
 import { DIVISIONS, CENTRAL_FUNCTIONS } from '../lib/operating-model';
 
 const nav = [
-  ['Overview', '⌂'], ['Entities', '▦'], ['Command Relay', '⌘'], ['Consultations', '✉'], ['Connections', '⛓'], ['System Health', '⚙'], ['Divisions', '▦'], ['Central functions', '✳'], ['Tasks', '☷'], ['Legal matters', '§'],
+  ['Overview', '⌂'], ['Entities', '▦'], ['Command Relay', '⌘'], ['Consultations', '✉'], ['Connections', '⛓'], ['System Health', '⚙'], ['Divisions', '▦'], ['Central functions', '✳'], ['Digital Studio', '✦'], ['Tasks', '☷'], ['Legal matters', '§'],
   ['Contacts', '◎'], ['Business development', '↗'], ['Opportunity Radar', '◈'], ['AI Agents & Tools', '✳'], ['Projects', '▦'], ['Finance', '৳'], ['Content studio', '▣'], ['Ventures', '◇'], ['Documents', '▤'],
 ];
 const dateLabel = value => value ? new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
@@ -187,6 +188,7 @@ export default function Dashboard() {
             </article>)}</div>
             <div className="os-attention"><div><b>Content production and revenue workflow</b><small>Research → Editorial brief → Writing → Script & creative → Founder / Advocate review → Approval → Scheduling → Publishing → Analytics → Lead attribution.</small></div></div>
           </section>}
+          {active === 'Digital Studio' && <DigitalStudio org={org} supabase={supabase} setActive={setActive} />}
           {active === 'Tasks' && <section className="os-panel"><PanelTitle title="Tasks & execution" sub="Create, prioritise and update work in the live workspace." count={openTasks.length + ' open'} />
             <form className="os-inline-form" onSubmit={addTask}><input value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="Add a task or next action…" required/><input value={taskDescription} onChange={e => setTaskDescription(e.target.value)} placeholder="Details / acceptance criteria (optional)"/><input type="date" value={taskDue} onChange={e => setTaskDue(e.target.value)} aria-label="Task due date (optional)"/><select value={taskPriority} onChange={e => setTaskPriority(e.target.value)}><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option><option value="low">Low</option></select><button disabled={saving}>{saving ? 'Saving…' : 'Add task'}</button></form>
             <TaskList tasks={tasks} onStatus={changeTaskStatus}/></section>}
