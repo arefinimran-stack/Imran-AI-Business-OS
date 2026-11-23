@@ -327,3 +327,6 @@ html[data-language="bn"] .credential-card h2,html[data-language="bn"] .lounge-fe
   .article-steps li{break-inside:avoid}
   a{color:#7F011F!important;text-decoration:none}
 }
+
+.service-email{display:inline-block;margin:10px 0 0 10px;font-size:9px;color:var(--wine-700);text-decoration:underline;text-underline-offset:3px}
+html[data-language='bn'] .service-email{font-family:'Noto Sans Bengali','Hind Siliguri',sans-serif}
