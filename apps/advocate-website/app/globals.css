@@ -266,3 +266,18 @@ html[data-theme="dark"] .site-footer{background:#09090B!important;color:#E8DCC0!
 html[data-theme="dark"] input,html[data-theme="dark"] select,html[data-theme="dark"] textarea{background:#17171A!important;color:#F5F1E8!important;border-color:rgba(217,185,120,.34)!important}
 html[data-theme="dark"] .button-outline{color:#E8DCC0!important;border-color:rgba(217,185,120,.5)!important}
 html[data-theme="dark"] .search-results a:hover{background:rgba(217,185,120,.12)!important}
+
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
+.site-tools{display:flex;align-items:center;gap:8px;flex:none}
+.language-toggle{height:34px;min-width:42px;padding:0 10px;border:1px solid #d8c9ab;border-radius:7px;background:transparent;color:var(--wine-900);font-size:8px;font-weight:700;cursor:pointer}
+.language-toggle:hover{background:var(--wine-100)}
+html[data-theme="dark"] .language-toggle{border-color:#665d4c;color:#f5ebd0}
+html[data-theme="dark"] .language-toggle:hover{background:#292629}
+html[data-language="bn"] body{font-family:'Noto Sans Bengali','Hind Siliguri',sans-serif}
+html[data-language="bn"] h1,html[data-language="bn"] h2,html[data-language="bn"] h3,html[data-language="bn"] .site-brand b{font-family:'Noto Sans Bengali','Hind Siliguri',sans-serif!important;letter-spacing:0;line-height:1.4}
+html[data-language="bn"] .eyebrow,html[data-language="bn"] .section-kicker,html[data-language="bn"] .service-number,html[data-language="bn"] .hero-meta,html[data-language="bn"] .hero-bottom{letter-spacing:0}
+html[data-language="bn"] .site-nav nav a,html[data-language="bn"] .site-nav-cta,html[data-language="bn"] .button{font-size:10px}
+html[data-language="bn"] .service-card p,html[data-language="bn"] .section-heading>p,html[data-language="bn"] .lounge-heading>p,html[data-language="bn"] .inner-lead,html[data-language="bn"] .inner-two p,html[data-language="bn"] .process-grid p{line-height:2}
+@media(max-width:900px){.site-nav{gap:10px}.site-nav nav{gap:10px}.site-nav nav a{font-size:8px}.site-tools{gap:5px}}
+@media(max-width:700px){.language-toggle{height:31px;min-width:38px;padding:0 7px}.site-tools{gap:4px}.site-nav{padding-left:14px;padding-right:14px}}
